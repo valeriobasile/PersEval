@@ -28,7 +28,7 @@ class Predictions():
         gold_standard = []
         for i, instance_id in enumerate(self.predictions["instance_id"]):
             gold_standard.append(
-                dataset.annotation[self.predictions["user"][i].user, user, instance.id])
+                dataset.annotation[self.predictions["user"][i], instance_id])
 
         print(classification_report(gold_standard, predicted_classes))    
 
