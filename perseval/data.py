@@ -13,6 +13,12 @@ log.basicConfig(
 # changing the random seed will change how the datasets are split into training and test set
 seed(config.seed)
 
+def get_dataset(dataset_name):
+    if dataset_name == "EPIC":
+        return Epic()
+    else:
+        log.error(f"Dataset {dataset_name} not found")
+                
 class PerspectivistDataset:
     def __init__(self):
         self.name = None
@@ -47,6 +53,7 @@ class PerspectivistSplit:
         self.users = dict()
         self.instances = dict()
         self.annotation = dict()
+        self.annotation_by_instance = dict()
 
     def __iter__(self):
         for (user, instance_id), label in self.annotation.items():
@@ -73,7 +80,19 @@ class Epic(PerspectivistDataset):
         super(Epic, self).__init__()
         self.name = "EPIC"
         self.filename = f"{self.name}{config.dataset_filename_suffix}"
-
+        self.dummy_examples = [
+            ("Hey there! Nice to see you Minnesota/ND Winter Weather", "yes"),
+#            ("deputymartinski please do..i need the second hand embarrassment so desperatly on my phone", "yes"),
+            ("@samcguigan544 You are not allowed to open that until Christmas day!", "no"),
+#            ("That moment when you have so much stuff to do but you open @tumblr ... #productivity #tumblr", "yes"),
+#            ("Over on CBS at noon is #BALvsMIA. FOX has #SEAvsPHI after the #Saints. #NFL", "no"),
+#            ("@eXoAnnihilator @roIIerCosta @KSIOlajidebt tells someone to spell correctly while completely fucking up his tweet", "yes"),
+#            ("My whole life is just \"oh ok\".", "no"),
+#            ("Why am I wide awake right now..:face_without_mouth:", "no"),
+#            ("My dads letting me drywall with him for Christmas. Just what I always wanted.", "yes"),
+#            ("\"@NBCSportsRoc: Arizona Coyotes forge deal with BMW http://t.co/s7ZhDHk5li\" But, relocation!!!", "yes")
+            ]
+        
         if isfile(self.filename):
             self.load()
             return
@@ -120,10 +139,19 @@ class Epic(PerspectivistDataset):
                 if (not row['user'] in test_users and not reading_test_set) or (row['user'] in test_users and reading_test_set):
                     split.instances[row['id_original']] = row['text']
 
-            log.info(f"Reading labels (test set: {reading_test_set})")
+            log.info(f"Reading individual labels (test set: {reading_test_set})")
             for row in tqdm(dataset['train']):
                 if (not row['user'] in test_users and not reading_test_set) or (row['user'] in test_users and reading_test_set):
                     split.annotation[(row['user'], row['id_original'])] = row['label']
+                    self.label_set.add(row['label'])
+            
+            log.info(f"Reading labels by instance(test set: {reading_test_set})")
+            for row in tqdm(dataset['train']):
+                if (not row['user'] in test_users and not reading_test_set) or (row['user'] in test_users and reading_test_set):
+                    if not row['id_original'] in split.annotation_by_instance:
+                        split.annotation_by_instance[row['id_original']] = []
+                    split.annotation_by_instance[row['id_original']].append(
+                        {"user": split.users[row['user']], "label": row['label']})
                     self.label_set.add(row['label'])
 
         self.save()

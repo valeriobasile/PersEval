@@ -30,7 +30,14 @@ class Predictions():
             gold_standard.append(
                 dataset.annotation[self.predictions["user"][i], instance_id])
 
-        print(classification_report(gold_standard, predicted_classes))    
+        print(classification_report(
+            gold_standard, 
+            predicted_classes, 
+            digits=3, 
+            zero_division=0.0).replace("0.", "."))   
+        h = self.predictions["label"].count('nul')
+        l = len(self.predictions['label'])
+        print (f"Found {h} out of {l} out-of-set labels ({(h/l)*100:.1f}%)") 
 
 def load_predictions(filename):
     predictions = Predictions()
