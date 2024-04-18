@@ -26,9 +26,10 @@ class PerspectivistDataset:
         self.filename = None
         self.trait_set = set()
         self.label_set = set()
-        self.training_set = PerspectivistSplit()
-        self.development_set = PerspectivistSplit()
-        self.test_set = PerspectivistSplit()
+        self.training_set = PerspectivistSplit(type="train")
+        self.strict_training_set = PerspectivistSplit(type="train")
+        self.development_set = PerspectivistSplit(type="validation")
+        self.test_set = PerspectivistSplit(type="test")
 
     def save(self):            
         log.info(f"Saving {self.name} to {self.filename}")
@@ -52,11 +53,11 @@ class PerspectivistDataset:
 
         # Texts
         # Dev and test texts have no overlap
-        
         assert set(self.development_set.instances).intersection(set(self.test_set.instances)) == set()  
-        
-        log.info("All tests passed")
+        # Strict train and test text have no overlap
+        assert set(self.strict_training_set.instances).intersection(set(self.test_set.instances)) == set()  
 
+        log.info("All tests passed")
 
 
 class Instance:
@@ -73,7 +74,7 @@ class Instance:
 class PerspectivistSplit:
     def __init__(self, type=None):
         self.type = type # Str, e.g., train, development, test
-        self.users = dict() # why not a set?
+        self.users = dict() 
         self.instances = dict()
         self.annotation = dict()
         self.annotation_by_instance = dict()
@@ -180,7 +181,6 @@ class Epic(PerspectivistDataset):
                     self.label_set.add(row['label'])
         self.training_set = train_split
 
-
         log.info("Performing the instance-based split")
         self.development_set, self.test_set = PerspectivistSplit(type="development"), PerspectivistSplit(type="test")
 
@@ -207,41 +207,25 @@ class Epic(PerspectivistDataset):
                 self.development_set.annotation_by_instance.update({t: develpment_test_split.annotation_by_instance[t]})
             else:
                 self.test_set.annotation_by_instance.update({t: develpment_test_split.annotation_by_instance[t]})
+
+    
+        # Create strict training set (remove test instances only)
+        log.info("Cleaning the training set from test instances")
+
+        # Filter annotation_by_instance
+        self.strict_training_set.annotation_by_instance = {t:self.training_set.annotation_by_instance[t] for t in self.training_set.annotation_by_instance if t not in self.test_set.annotation_by_instance}
+
+        # Filter annotation and users
+        for u, t in self.training_set.annotation:
+            if t in self.test_set.annotation_by_instance:
+                self.strict_training_set.annotation.update({(u, t): self.training_set.annotation[(u, t)]})
+                self.strict_training_set.users[u] = User(u)
+
+        # Filter instances
+        self.strict_training_set.instances = {k:self.training_set.instances[k] for k in self.training_set.instances if not k in self.test_set.instances}
         
         # A few checks
         self.check_splits()
-        '''
-        # We do not have a user -> instances dict, right? 
-        for user in develpment_test_split.users:
-            print(user)
-            # Take all the ids of the texts of the annotations of the user 
-            # (it would probably be better to have a set in the user's object)
-            user_text_ids = [a for a in develpment_test_split.annotation if a[0]==user]
-            # Sample some of them
-            user_development_texts = sample(sorted(user_text_ids), int(len(user_text_ids) * config.dataset_specific_splits[self.name]["instance_based_split_percentage"]))
-            # Take the corresponding texts for the dev
-            user_development_texts = {a:develpment_test_split.annotation[a] for a in user_development_texts}
-            # The rest of the user's annotations go to the test set
-            user_test_instances = [a for a in develpment_test_split.annotation if a not in user_development_texts]
-            user_test_annotations = {a:develpment_test_split.annotation[a] for a in user_test_instances}
-
-            # Add instances to the splits
-            user_development_instance_ids = [i[1] for i in user_develppment_annotations]
-            develpment_split.instances.update({k:develpment_test_split.instances[k] for k in develpment_test_split.instances if k in user_development_instance_ids})
-            user_test_instance_ids = [i[1] for i in user_test_annotations]
-            test_split.instances.update({k:develpment_test_split.instances[k] for k in develpment_test_split.instances if k in user_test_instance_ids})
-
-        print(len(develpment_split.instances))
-        print(len(test_split.instances))
-        
-        
-            #print(user_annotations)
-        #print(develpment_test_split.users)
-        #print(develpment_test_split.instances)
-        #print(develpment_test_split.annotation)
-        #print(develpment_test_split.annotation_by_instance)
-        '''
-
         #self.save()
 
     def __convert_age(self, age):
