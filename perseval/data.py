@@ -1,10 +1,15 @@
-from datasets import load_dataset
-from random import seed, sample
-from . import config
-from tqdm import tqdm
+
 import pickle
-from os.path import isfile
 import logging as log
+from os.path import isfile
+from random import seed, sample
+
+from tqdm import tqdm
+import numpy as np
+from datasets import load_dataset
+
+from . import config
+
 log.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     encoding='utf-8', 
@@ -41,21 +46,59 @@ class PerspectivistDataset:
         with open(self.filename, "rb") as f:
             self.__dict__, self.training_set, self.test_set = pickle.load(f)
 
-    
+    def describe_splits(self):
+        print("--- Unique users ---")
+        print("Train set: %d" % len(self.training_set.users))
+        print("Strict train set: %d" % len(self.strict_training_set.users))
+        print("Development set: %d" % len(self.development_set.users))
+        print("Test set: %d" % len(self.test_set.users))
+        print()
+        print("--- Unique texts ---")
+        print("Train set: %d" % len(self.training_set.annotation_by_text))
+        print("Strict train set: %d (%d lost)" % (len(self.strict_training_set.annotation_by_text), len(self.training_set.annotation_by_text)-len(self.strict_training_set.annotation_by_text)))
+        print("Development set: %d" % len(self.development_set.annotation_by_text))
+        print("Test set: %d" % len(self.test_set.annotation_by_text))
+        print()
+        print("--- Instances (text + user) ---")
+        print("Train set: %d" % len(self.training_set.annotation))
+        print("Strict train set: %d (%d lost)" % (len(self.strict_training_set.annotation), len(self.training_set.annotation)-len(self.strict_training_set.annotation)))
+        print("Development set: %d" % len(self.development_set.annotation))
+        print("Test set: %d" % len(self.test_set.annotation))
+        print()
+        print("--- User-text validation/test distribution ---")
+        number_user_dev_texts, number_user_test_texts = [], [] 
+        for u in self.development_set.users:
+            user_dev_texts, user_test_texts = 0, 0 
+            for i in self.development_set.annotation:
+                if i[0]==u:
+                    user_dev_texts+=1
+            for i in self.test_set.annotation:
+                if i[0]==u:
+                    user_test_texts+=1
+            number_user_dev_texts.append(user_dev_texts)
+            number_user_test_texts.append(user_test_texts)
+        percentage_in_dev = [d/t for d, t in zip(number_user_dev_texts, number_user_test_texts)]
+        print("The mean percentage of texts per users in the development set is %.3f" % np.mean(percentage_in_dev))
+        print("The mean number of texts per users in the development set is %.3f" % np.mean(number_user_dev_texts))
+        print("The mean number of texts per users in the test set is %.3f" % np.mean(number_user_test_texts))
+        print("The min percentage of texts per users in the development set is %.3f (i.e. %.0f instances)" % (np.min(percentage_in_dev), np.min(number_user_dev_texts)))
+        print("The max percentage of texts per users in the development set is %.3f (i.e. %.0f instances)" % (np.max(percentage_in_dev), np.max(number_user_dev_texts)))
+
     def check_splits(self):
         # Users
         # Train and dev + test users have no overlap
         assert set(self.training_set.users).intersection(set(self.development_set.users)) == set()
         assert set(self.training_set.users).intersection(set(self.test_set.users)) == set()
+        
         # Dev and test users have the same users
         # In theory, this might not be true in case of a very unfortunate split
         assert set(self.development_set.users).union(set(self.test_set.users)) == set(self.development_set.users) 
 
         # Texts
         # Dev and test texts have no overlap
-        assert set(self.development_set.instances).intersection(set(self.test_set.instances)) == set()  
+        assert set(self.development_set.texts).intersection(set(self.test_set.texts)) == set()  
         # Strict train and test text have no overlap
-        assert set(self.strict_training_set.instances).intersection(set(self.test_set.instances)) == set()  
+        assert set(self.strict_training_set.texts).intersection(set(self.test_set.texts)) == set()  
 
         log.info("All tests passed")
 
@@ -75,15 +118,15 @@ class PerspectivistSplit:
     def __init__(self, type=None):
         self.type = type # Str, e.g., train, development, test
         self.users = dict() 
-        self.instances = dict()
+        self.texts = dict()
         self.annotation = dict()
-        self.annotation_by_instance = dict()
+        self.annotation_by_text = dict()
 
     def __iter__(self):
         for (user, instance_id), label in self.annotation.items():
             yield Instance(
                 instance_id, 
-                self.instances[instance_id],
+                self.texts[instance_id],
                 self.users[user],
                 label)
 
@@ -163,7 +206,7 @@ class Epic(PerspectivistDataset):
             log.info(f"Reading messages (set: {split.type})")
             for row in tqdm(dataset['train']):
                 if (not row['user'] in development_test_user_ids and split.type=="train") or (row['user'] in development_test_user_ids and split.type!="train"):
-                    split.instances[row['id_original']] = {"post": row['parent_text'], "reply": row['text']} 
+                    split.texts[row['id_original']] = {"post": row['parent_text'], "reply": row['text']} 
 
             log.info(f"Reading individual labels (set: {split.type})")
             for row in tqdm(dataset['train']):
@@ -171,28 +214,28 @@ class Epic(PerspectivistDataset):
                     split.annotation[(row['user'], row['id_original'])] = row['label']
                     self.label_set.add(row['label'])
             
-            log.info(f"Reading labels by instance (set: {split.type})")
+            log.info(f"Reading labels by text (set: {split.type})")
             for row in tqdm(dataset['train']):
                 if (not row['user'] in development_test_user_ids and split.type=="train") or (row['user'] in development_test_user_ids and split.type!="train"):
-                    if not row['id_original'] in split.annotation_by_instance:
-                        split.annotation_by_instance[row['id_original']] = []
-                    split.annotation_by_instance[row['id_original']].append(
+                    if not row['id_original'] in split.annotation_by_text:
+                        split.annotation_by_text[row['id_original']] = []
+                    split.annotation_by_text[row['id_original']].append(
                         {"user": split.users[row['user']], "label": row['label']})
                     self.label_set.add(row['label'])
         self.training_set = train_split
 
-        log.info("Performing the instance-based split")
+        log.info("Performing the text-based split")
         self.development_set, self.test_set = PerspectivistSplit(type="development"), PerspectivistSplit(type="test")
 
         # Sample which annotations will be in the dev and which in the test
-        development_text_ids = sample(sorted(develpment_test_split.instances), int(len(develpment_test_split.instances) * config.dataset_specific_splits[self.name]["instance_based_split_percentage"]))
-        self.development_set.instances = {k:develpment_test_split.instances[k] for k in development_text_ids}
-        self.test_set.instances = {k:develpment_test_split.instances[k] for k in develpment_test_split.instances.keys() if k not in development_text_ids}
+        development_text_ids = sample(sorted(develpment_test_split.texts), int(len(develpment_test_split.texts) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
+        self.development_set.texts = {k:develpment_test_split.texts[k] for k in development_text_ids}
+        self.test_set.texts = {k:develpment_test_split.texts[k] for k in develpment_test_split.texts.keys() if k not in development_text_ids}
         
         # Annotations and users
         self.development_set.annotation, self.test_set.annotation = {}, {}
         self.development_set.users, self.test_set.users = {}, {}
-        for u, t in develpment_test_split.annotation:
+        for u, t in tqdm(develpment_test_split.annotation):
             if t in development_text_ids:
                 self.development_set.annotation.update({(u, t): develpment_test_split.annotation[(u, t)]})
                 self.development_set.users[u] = User(u)
@@ -200,32 +243,36 @@ class Epic(PerspectivistDataset):
                 self.test_set.annotation.update({(u, t): develpment_test_split.annotation[(u, t)]})
                 self.test_set.users[u] = User(u)
         
-        # Annotation by instance
-        self.development_set.annotation_by_instance, self.test_set.annotation_by_instance = {}, {}
-        for t in develpment_test_split.annotation_by_instance:
+        # Annotation by text
+        self.development_set.annotation_by_text, self.test_set.annotation_by_text = {}, {}
+        for t in tqdm(develpment_test_split.annotation_by_text):
             if t in development_text_ids:
-                self.development_set.annotation_by_instance.update({t: develpment_test_split.annotation_by_instance[t]})
+                self.development_set.annotation_by_text.update({t: develpment_test_split.annotation_by_text[t]})
             else:
-                self.test_set.annotation_by_instance.update({t: develpment_test_split.annotation_by_instance[t]})
+                self.test_set.annotation_by_text.update({t: develpment_test_split.annotation_by_text[t]})
 
     
-        # Create strict training set (remove test instances only)
-        log.info("Cleaning the training set from test instances")
+        # Create strict training set (remove test texts only)
+        log.info("Cleaning the training set from test texts")
 
-        # Filter annotation_by_instance
-        self.strict_training_set.annotation_by_instance = {t:self.training_set.annotation_by_instance[t] for t in self.training_set.annotation_by_instance if t not in self.test_set.annotation_by_instance}
+        # Filter annotation_by_text
+        self.strict_training_set.annotation_by_text = {t:self.training_set.annotation_by_text[t] for t in self.training_set.annotation_by_text if t not in self.test_set.annotation_by_text}
 
         # Filter annotation and users
         for u, t in self.training_set.annotation:
-            if t in self.test_set.annotation_by_instance:
+            if t in self.test_set.annotation_by_text:
                 self.strict_training_set.annotation.update({(u, t): self.training_set.annotation[(u, t)]})
                 self.strict_training_set.users[u] = User(u)
 
-        # Filter instances
-        self.strict_training_set.instances = {k:self.training_set.instances[k] for k in self.training_set.instances if not k in self.test_set.instances}
+        # Filter texts
+        self.strict_training_set.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
         
         # A few checks
         self.check_splits()
+
+        # Print some stats
+        self.describe_splits()
+
         #self.save()
 
     def __convert_age(self, age):
