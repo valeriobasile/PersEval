@@ -92,6 +92,7 @@ class PerspectivistDataset:
         
         # Dev and test users have the same users
         # In theory, this might not be true in case of a very unfortunate split
+        # TODO: try stratification on the user
         assert set(self.development_set.users).union(set(self.test_set.users)) == set(self.development_set.users) 
 
         # Texts
@@ -119,7 +120,7 @@ class PerspectivistSplit:
         self.type = type # Str, e.g., train, development, test
         self.users = dict() 
         self.texts = dict()
-        self.annotation = dict()
+        self.annotation = dict() #user, text, label (Instance + label)
         self.annotation_by_text = dict()
 
     def __iter__(self):
@@ -151,19 +152,7 @@ class Epic(PerspectivistDataset):
         super(Epic, self).__init__()
         self.name = "EPIC"
         self.filename = f"{self.name}{config.dataset_filename_suffix}"
-        self.dummy_examples = [
-            ("Hey there! Nice to see you Minnesota/ND Winter Weather", "yes"),
-#            ("deputymartinski please do..i need the second hand embarrassment so desperatly on my phone", "yes"),
-            ("@samcguigan544 You are not allowed to open that until Christmas day!", "no"),
-#            ("That moment when you have so much stuff to do but you open @tumblr ... #productivity #tumblr", "yes"),
-#            ("Over on CBS at noon is #BALvsMIA. FOX has #SEAvsPHI after the #Saints. #NFL", "no"),
-#            ("@eXoAnnihilator @roIIerCosta @KSIOlajidebt tells someone to spell correctly while completely fucking up his tweet", "yes"),
-#            ("My whole life is just \"oh ok\".", "no"),
-#            ("Why am I wide awake right now..:face_without_mouth:", "no"),
-#            ("My dads letting me drywall with him for Christmas. Just what I always wanted.", "yes"),
-#            ("\"@NBCSportsRoc: Arizona Coyotes forge deal with BMW http://t.co/s7ZhDHk5li\" But, relocation!!!", "yes")
-            ]
-        
+
         if isfile(self.filename):
             self.load()
             return
@@ -179,8 +168,8 @@ class Epic(PerspectivistDataset):
         # Sample developtment+test users
         development_test_user_ids = sample(sorted(user_ids), int(len(user_ids) * config.dataset_specific_splits[self.name]["user_based_split_percentage"]))
         
-        train_split , develpment_test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development_test")
-        user_based_splits = [train_split, develpment_test_split]
+        train_split , development_test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development_test")
+        user_based_splits = [train_split, development_test_split]
         for split in user_based_splits:
             log.info(f"Reading annotator traits (set: {split.type})")
             for row in tqdm(dataset['train']):
@@ -228,28 +217,28 @@ class Epic(PerspectivistDataset):
         self.development_set, self.test_set = PerspectivistSplit(type="development"), PerspectivistSplit(type="test")
 
         # Sample which annotations will be in the dev and which in the test
-        development_text_ids = sample(sorted(develpment_test_split.texts), int(len(develpment_test_split.texts) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
-        self.development_set.texts = {k:develpment_test_split.texts[k] for k in development_text_ids}
-        self.test_set.texts = {k:develpment_test_split.texts[k] for k in develpment_test_split.texts.keys() if k not in development_text_ids}
+        development_text_ids = sample(sorted(development_test_split.texts), int(len(development_test_split.texts) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
+        self.development_set.texts = {k:development_test_split.texts[k] for k in development_text_ids}
+        self.test_set.texts = {k:development_test_split.texts[k] for k in development_test_split.texts.keys() if k not in development_text_ids}
         
         # Annotations and users
         self.development_set.annotation, self.test_set.annotation = {}, {}
         self.development_set.users, self.test_set.users = {}, {}
-        for u, t in tqdm(develpment_test_split.annotation):
+        for u, t in tqdm(development_test_split.annotation):
             if t in development_text_ids:
-                self.development_set.annotation.update({(u, t): develpment_test_split.annotation[(u, t)]})
+                self.development_set.annotation.update({(u, t): development_test_split.annotation[(u, t)]})
                 self.development_set.users[u] = User(u)
             else:
-                self.test_set.annotation.update({(u, t): develpment_test_split.annotation[(u, t)]})
+                self.test_set.annotation.update({(u, t): development_test_split.annotation[(u, t)]})
                 self.test_set.users[u] = User(u)
         
         # Annotation by text
         self.development_set.annotation_by_text, self.test_set.annotation_by_text = {}, {}
-        for t in tqdm(develpment_test_split.annotation_by_text):
+        for t in tqdm(development_test_split.annotation_by_text):
             if t in development_text_ids:
-                self.development_set.annotation_by_text.update({t: develpment_test_split.annotation_by_text[t]})
+                self.development_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
             else:
-                self.test_set.annotation_by_text.update({t: develpment_test_split.annotation_by_text[t]})
+                self.test_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
 
     
         # Create strict training set (remove test texts only)
