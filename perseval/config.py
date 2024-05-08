@@ -4,5 +4,9 @@ dataset_specific_splits = {
     "EPIC": {
         "user_based_split_percentage" : 0.2,
         "text_based_split_percentage" : 0.05,
+    },
+    "BREXIT": {
+        "user_based_split_percentage" : 0.33,
+        "text_based_split_percentage" : 0.05,
     }
 }

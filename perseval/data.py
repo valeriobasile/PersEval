@@ -6,7 +6,8 @@ from random import seed, sample
 
 from tqdm import tqdm
 import numpy as np
-from datasets import load_dataset
+from datasets import load_dataset, concatenate_datasets
+from sklearn.model_selection import train_test_split
 
 from . import config
 
@@ -141,7 +142,7 @@ class User:
         self.traits = set()
 
     def __repr__(self):
-        return "User: " + self.id
+        return "User: " + str(self.id)
     
     def __lt__(self, other):
         return self.id < other.id
@@ -278,3 +279,118 @@ class Epic(PerspectivistDataset):
             return "GenY"
         else:
             return "GenZ"
+
+
+class Brexit(PerspectivistDataset):
+    def __init__(self):
+        super(Brexit, self).__init__()
+        self.name = "BREXIT"
+        self.filename = f"{self.name}{config.dataset_filename_suffix}"
+
+        if isfile(self.filename):
+            self.load()
+            return
+
+        dataset = load_dataset("silvia-casola/BREXIT")
+        dataset = concatenate_datasets([dataset["train"], dataset["validation"], dataset["test"]])
+
+        log.info("Reading annotators")
+        users = set()
+        for row in tqdm(dataset):
+            users.add((row['annotator_id'], row['annotator_group']))
+        user_ids = list([u[0] for u in users])
+        user_group = list([u[1] for u in users]) 
+        print(user_ids)
+
+        log.info("Performing the user-based split")
+        # Sample developtment+test users
+        _, development_test_user_ids = train_test_split(user_ids, 
+                                                        test_size=config.dataset_specific_splits[self.name]["user_based_split_percentage"], 
+                                                        random_state=config.seed, 
+                                                        shuffle=True, stratify=user_group)
+        
+        train_split , development_test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development_test")
+        user_based_splits = [train_split, development_test_split]
+        
+        for split in user_based_splits:
+            log.info(f"Reading annotator traits (set: {split.type})")
+            for row in tqdm(dataset):
+                if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
+                    if not row['annotator_id'] in split.users:
+                        split.users[row['annotator_id']] = User(row['annotator_id'])
+
+                    trait = f"Group: {row['annotator_group']}"
+                    split.users[row['annotator_id']].traits.add(trait)
+                    self.trait_set.add(trait)
+
+            log.info(f"Reading messages (set: {split.type})")
+            for row in tqdm(dataset):
+                if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
+                    split.texts[row['instance_id']] = row['tweet']
+
+            log.info(f"Reading individual labels (set: {split.type})")
+            for row in tqdm(dataset):
+                if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
+                    split.annotation[(row['annotator_id'], row['instance_id'])] = row['hs']
+                    self.label_set.add(row['hs'])
+            
+            log.info(f"Reading labels by text (set: {split.type})")
+            for row in tqdm(dataset):
+                if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
+                    if not row['instance_id'] in split.annotation_by_text:
+                        split.annotation_by_text[row['instance_id']] = []
+                    split.annotation_by_text[row['instance_id']].append(
+                        {"user": split.users[row['annotator_id']], "label": row['hs']})
+                    self.label_set.add(row['hs'])
+        self.training_set = train_split
+
+        log.info("Performing the text-based split")
+        self.development_set, self.test_set = PerspectivistSplit(type="development"), PerspectivistSplit(type="test")
+
+        # Sample which annotations will be in the dev and which in the test
+        development_text_ids = sample(sorted(development_test_split.texts), int(len(development_test_split.texts) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
+        self.development_set.texts = {k:development_test_split.texts[k] for k in development_text_ids}
+        self.test_set.texts = {k:development_test_split.texts[k] for k in development_test_split.texts.keys() if k not in development_text_ids}
+        
+        # Annotations and users
+        self.development_set.annotation, self.test_set.annotation = {}, {}
+        self.development_set.users, self.test_set.users = {}, {}
+        for u, t in tqdm(development_test_split.annotation):
+            if t in development_text_ids:
+                self.development_set.annotation.update({(u, t): development_test_split.annotation[(u, t)]})
+                self.development_set.users[u] = User(u)
+            else:
+                self.test_set.annotation.update({(u, t): development_test_split.annotation[(u, t)]})
+                self.test_set.users[u] = User(u)
+        
+        # Annotation by text
+        self.development_set.annotation_by_text, self.test_set.annotation_by_text = {}, {}
+        for t in tqdm(development_test_split.annotation_by_text):
+            if t in development_text_ids:
+                self.development_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
+            else:
+                self.test_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
+
+    
+        # Create strict training set (remove test texts only)
+        log.info("Cleaning the training set from test texts")
+
+        # Filter annotation_by_text
+        self.strict_training_set.annotation_by_text = {t:self.training_set.annotation_by_text[t] for t in self.training_set.annotation_by_text if t not in self.test_set.annotation_by_text}
+
+        # Filter annotation and users
+        for u, t in self.training_set.annotation:
+            if t in self.test_set.annotation_by_text:
+                self.strict_training_set.annotation.update({(u, t): self.training_set.annotation[(u, t)]})
+                self.strict_training_set.users[u] = User(u)
+
+        # Filter texts
+        self.strict_training_set.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
+        
+        # A few checks
+        self.check_splits()
+
+        # Print some stats
+        self.describe_splits()
+
+        #self.save()
