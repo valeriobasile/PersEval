@@ -31,7 +31,7 @@ class PerspectivistDataset:
         self.name = None
         self.filename = None
         self.trait_set = set()
-        self.label_set = set()
+        self.labels = dict()
         self.training_set = PerspectivistSplit(type="train")
         self.strict_training_set = PerspectivistSplit(type="train")
         self.development_set = PerspectivistSplit(type="validation")
@@ -153,11 +153,9 @@ class Epic(PerspectivistDataset):
         super(Epic, self).__init__()
         self.name = "EPIC"
         self.filename = f"{self.name}{config.dataset_filename_suffix}"
-
         if isfile(self.filename):
             self.load()
             return
-
         dataset = load_dataset("Multilingual-Perspectivist-NLU/EPIC")
 
         log.info("Reading annotators")
@@ -191,7 +189,7 @@ class Epic(PerspectivistDataset):
                         split.users[row['user']].traits.add(trait)
                         self.trait_set.add(trait)
                     except ValueError as e:
-                        pass #print (e)
+                        pass
 
             log.info(f"Reading messages (set: {split.type})")
             for row in tqdm(dataset['train']):
@@ -199,10 +197,12 @@ class Epic(PerspectivistDataset):
                     split.texts[row['id_original']] = {"post": row['parent_text'], "reply": row['text']} 
 
             log.info(f"Reading individual labels (set: {split.type})")
+            self.labels["irony"] = set()
             for row in tqdm(dataset['train']):
                 if (not row['user'] in development_test_user_ids and split.type=="train") or (row['user'] in development_test_user_ids and split.type!="train"):
-                    split.annotation[(row['user'], row['id_original'])] = row['label']
-                    self.label_set.add(row['label'])
+                    split.annotation[(row['user'], row['id_original'])] = {}
+                    split.annotation[(row['user'], row['id_original'])]["irony"] = row['label']
+                    self.labels["irony"].add(row['label'])
             
             log.info(f"Reading labels by text (set: {split.type})")
             for row in tqdm(dataset['train']):
@@ -210,8 +210,8 @@ class Epic(PerspectivistDataset):
                     if not row['id_original'] in split.annotation_by_text:
                         split.annotation_by_text[row['id_original']] = []
                     split.annotation_by_text[row['id_original']].append(
-                        {"user": split.users[row['user']], "label": row['label']})
-                    self.label_set.add(row['label'])
+                        {"user": split.users[row['user']], "label": {"irony": row['label']}})
+                    self.labels["irony"].add(row['label'])
         self.training_set = train_split
 
         log.info("Performing the text-based split")
@@ -244,25 +244,20 @@ class Epic(PerspectivistDataset):
     
         # Create strict training set (remove test texts only)
         log.info("Cleaning the training set from test texts")
-
         # Filter annotation_by_text
         self.strict_training_set.annotation_by_text = {t:self.training_set.annotation_by_text[t] for t in self.training_set.annotation_by_text if t not in self.test_set.annotation_by_text}
-
         # Filter annotation and users
         for u, t in self.training_set.annotation:
             if t in self.test_set.annotation_by_text:
                 self.strict_training_set.annotation.update({(u, t): self.training_set.annotation[(u, t)]})
                 self.strict_training_set.users[u] = User(u)
-
         # Filter texts
         self.strict_training_set.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
         
         # A few checks
         self.check_splits()
-
         # Print some stats
         self.describe_splits()
-
         #self.save()
 
     def __convert_age(self, age):
@@ -286,11 +281,9 @@ class Brexit(PerspectivistDataset):
         super(Brexit, self).__init__()
         self.name = "BREXIT"
         self.filename = f"{self.name}{config.dataset_filename_suffix}"
-
         if isfile(self.filename):
             self.load()
             return
-
         dataset = load_dataset("silvia-casola/BREXIT")
         dataset = concatenate_datasets([dataset["train"], dataset["validation"], dataset["test"]])
 
@@ -300,7 +293,6 @@ class Brexit(PerspectivistDataset):
             users.add((row['annotator_id'], row['annotator_group']))
         user_ids = list([u[0] for u in users])
         user_group = list([u[1] for u in users]) 
-        print(user_ids)
 
         log.info("Performing the user-based split")
         # Sample developtment+test users
@@ -309,9 +301,8 @@ class Brexit(PerspectivistDataset):
                                                         random_state=config.seed, 
                                                         shuffle=True, stratify=user_group)
         
-        train_split , development_test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development_test")
+        train_split, development_test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development_test")
         user_based_splits = [train_split, development_test_split]
-        
         for split in user_based_splits:
             log.info(f"Reading annotator traits (set: {split.type})")
             for row in tqdm(dataset):
@@ -329,10 +320,21 @@ class Brexit(PerspectivistDataset):
                     split.texts[row['instance_id']] = row['tweet']
 
             log.info(f"Reading individual labels (set: {split.type})")
+            self.labels["hs"] = set()
+            self.labels["offensiveness"] = set()
+            self.labels["aggressiveness"] = set()
+            self.labels["stereotype"] = set()
             for row in tqdm(dataset):
                 if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
-                    split.annotation[(row['annotator_id'], row['instance_id'])] = row['hs']
-                    self.label_set.add(row['hs'])
+                    split.annotation[(row['annotator_id'], row['instance_id'])] = {}
+                    split.annotation[(row['annotator_id'], row['instance_id'])]["hs"] = row['hs']
+                    split.annotation[(row['annotator_id'], row['instance_id'])]["offensiveness"] = row['offensiveness']
+                    split.annotation[(row['annotator_id'], row['instance_id'])]["aggressiveness"] = row['aggressiveness']
+                    split.annotation[(row['annotator_id'], row['instance_id'])]["stereotype"] = row['stereotype']
+                    self.labels["hs"].add(row['hs'])
+                    self.labels["offensiveness"].add(row['offensiveness'])
+                    self.labels["aggressiveness"].add(row['aggressiveness'])
+                    self.labels["stereotype"].add(row['stereotype'])
             
             log.info(f"Reading labels by text (set: {split.type})")
             for row in tqdm(dataset):
@@ -340,8 +342,14 @@ class Brexit(PerspectivistDataset):
                     if not row['instance_id'] in split.annotation_by_text:
                         split.annotation_by_text[row['instance_id']] = []
                     split.annotation_by_text[row['instance_id']].append(
-                        {"user": split.users[row['annotator_id']], "label": row['hs']})
-                    self.label_set.add(row['hs'])
+                        {"user": split.users[row['annotator_id']], "label": {"hs": row['hs'],
+                                                                             "offensiveness": row['offensiveness'],
+                                                                             "aggressiveness": row['aggressiveness'],
+                                                                             "stereotype": row['stereotype'],}})
+                    self.labels["hs"].add(row['hs'])
+                    self.labels["offensiveness"].add(row['offensiveness'])
+                    self.labels["aggressiveness"].add(row['aggressiveness'])
+                    self.labels["stereotype"].add(row['stereotype'])
         self.training_set = train_split
 
         log.info("Performing the text-based split")
