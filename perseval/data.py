@@ -301,9 +301,17 @@ class Brexit(PerspectivistDataset):
                                                         random_state=config.seed, 
                                                         shuffle=True, stratify=user_group)
         
-        train_split, development_test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development_test")
-        user_based_splits = [train_split, development_test_split]
-        for split in user_based_splits:
+        # Sample texts
+        all_text_ids = list(set(dataset["instance_id"]))
+        train_text_ids = sample(sorted(all_text_ids), int(len(all_text_ids)*config.dataset_specific_splits[self.name]["text_based_split_percentage_train"]))
+        development_test_text_ids = [t for t in all_text_ids if t not in train_text_ids]
+        development_text_ids = sample(sorted(development_test_text_ids), int(len(development_test_text_ids)*config.dataset_specific_splits[self.name]["text_based_split_percentage_dev"]))
+        test_text_ids = [t for t in development_test_text_ids if t not in development_text_ids]
+        
+        train_split, development_split, test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development"), PerspectivistSplit(type="test")
+        splits = [train_split, development_split, test_split]
+        print(development_test_user_ids)
+        for split in splits:
             log.info(f"Reading annotator traits (set: {split.type})")
             for row in tqdm(dataset):
                 if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
@@ -313,11 +321,13 @@ class Brexit(PerspectivistDataset):
                     trait = f"Group: {row['annotator_group']}"
                     split.users[row['annotator_id']].traits.add(trait)
                     self.trait_set.add(trait)
-
+        
             log.info(f"Reading messages (set: {split.type})")
             for row in tqdm(dataset):
-                if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
-                    split.texts[row['instance_id']] = row['tweet']
+                if (not row['annotator_id'] in development_test_user_ids and split.type=="train" and (row["instance_id"] in train_text_ids or row["instance_id"] in test_text_ids)) or \
+                    (row['annotator_id'] in development_test_user_ids and split.type=="development" and row["instance_id"] in development_text_ids) or \
+                        (row['annotator_id'] in development_test_user_ids and split.type=="test" and row["instance_id"] in test_text_ids):
+                        split.texts[row['instance_id']] = row['tweet']
 
             log.info(f"Reading individual labels (set: {split.type})")
             self.labels["hs"] = set()
@@ -325,7 +335,9 @@ class Brexit(PerspectivistDataset):
             self.labels["aggressiveness"] = set()
             self.labels["stereotype"] = set()
             for row in tqdm(dataset):
-                if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
+                if (not row['annotator_id'] in development_test_user_ids and split.type=="train" and (row["instance_id"] in train_text_ids or row["instance_id"] in test_text_ids)) or \
+                    (row['annotator_id'] in development_test_user_ids and split.type=="development" and row["instance_id"] in development_text_ids) or \
+                        (row['annotator_id'] in development_test_user_ids and split.type=="test" and row["instance_id"] in test_text_ids):
                     split.annotation[(row['annotator_id'], row['instance_id'])] = {}
                     split.annotation[(row['annotator_id'], row['instance_id'])]["hs"] = row['hs']
                     split.annotation[(row['annotator_id'], row['instance_id'])]["offensiveness"] = row['offensiveness']
@@ -338,7 +350,9 @@ class Brexit(PerspectivistDataset):
             
             log.info(f"Reading labels by text (set: {split.type})")
             for row in tqdm(dataset):
-                if (not row['annotator_id'] in development_test_user_ids and split.type=="train") or (row['annotator_id'] in development_test_user_ids and split.type!="train"):
+                if (not row['annotator_id'] in development_test_user_ids and split.type=="train" and (row["instance_id"] in train_text_ids or row["instance_id"] in test_text_ids)) or \
+                    (row['annotator_id'] in development_test_user_ids and split.type=="development" and row["instance_id"] in development_text_ids) or \
+                        (row['annotator_id'] in development_test_user_ids and split.type=="test" and row["instance_id"] in test_text_ids):
                     if not row['instance_id'] in split.annotation_by_text:
                         split.annotation_by_text[row['instance_id']] = []
                     split.annotation_by_text[row['instance_id']].append(
@@ -351,35 +365,10 @@ class Brexit(PerspectivistDataset):
                     self.labels["aggressiveness"].add(row['aggressiveness'])
                     self.labels["stereotype"].add(row['stereotype'])
         self.training_set = train_split
+        #self.strict_training_set = train_split
+        self.development_set = development_split
+        self.test_set = test_split
 
-        log.info("Performing the text-based split")
-        self.development_set, self.test_set = PerspectivistSplit(type="development"), PerspectivistSplit(type="test")
-
-        # Sample which annotations will be in the dev and which in the test
-        development_text_ids = sample(sorted(development_test_split.texts), int(len(development_test_split.texts) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
-        self.development_set.texts = {k:development_test_split.texts[k] for k in development_text_ids}
-        self.test_set.texts = {k:development_test_split.texts[k] for k in development_test_split.texts.keys() if k not in development_text_ids}
-        
-        # Annotations and users
-        self.development_set.annotation, self.test_set.annotation = {}, {}
-        self.development_set.users, self.test_set.users = {}, {}
-        for u, t in tqdm(development_test_split.annotation):
-            if t in development_text_ids:
-                self.development_set.annotation.update({(u, t): development_test_split.annotation[(u, t)]})
-                self.development_set.users[u] = User(u)
-            else:
-                self.test_set.annotation.update({(u, t): development_test_split.annotation[(u, t)]})
-                self.test_set.users[u] = User(u)
-        
-        # Annotation by text
-        self.development_set.annotation_by_text, self.test_set.annotation_by_text = {}, {}
-        for t in tqdm(development_test_split.annotation_by_text):
-            if t in development_text_ids:
-                self.development_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
-            else:
-                self.test_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
-
-    
         # Create strict training set (remove test texts only)
         log.info("Cleaning the training set from test texts")
 
@@ -394,7 +383,7 @@ class Brexit(PerspectivistDataset):
 
         # Filter texts
         self.strict_training_set.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
-        
+
         # A few checks
         self.check_splits()
 
