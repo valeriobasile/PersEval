@@ -92,7 +92,7 @@ class PerspectivistDataset:
         assert set(self.training_set.users).intersection(set(self.test_set.users)) == set()
         
         # Dev and test users have the same users
-        # In theory, this might not be true in case of a very unfortunate split
+        # In theory, this might not be true in case of a very unfortunate split for non-dense datasets
         # TODO: try stratification on the user
         assert set(self.development_set.users).union(set(self.test_set.users)) == set(self.development_set.users) 
 
@@ -101,6 +101,8 @@ class PerspectivistDataset:
         assert set(self.development_set.texts).intersection(set(self.test_set.texts)) == set()  
         # Strict train and test text have no overlap
         assert set(self.strict_training_set.texts).intersection(set(self.test_set.texts)) == set()  
+        # All text in the strict training set are also in the training set
+        assert set(self.strict_training_set.texts).intersection(set(self.training_set.texts)) == set(self.strict_training_set.texts)  
 
         log.info("All tests passed")
 
