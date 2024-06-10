@@ -13,7 +13,7 @@ dataset_specific_splits = {
     },
 
     "MHS" : {
-        "user_based_split_percentage" : 0.2,
-        "text_based_split_percentage" : 0.05,
+        "user_based_split_percentage" : 0.4,
+        "text_based_split_percentage" : 0.3,
     }
 }

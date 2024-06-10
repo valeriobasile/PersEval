@@ -416,7 +416,7 @@ class MHS(PerspectivistDataset):
                     split.users[row['annotator_id']].traits.add(trait)
                     self.trait_set.add(trait)
                     
-                    trait = f"Annotator is transgender: {row['annotator_trans']}"
+                    trait = f"Transgender: {row['annotator_trans']}"
                     split.users[row['annotator_id']].traits.add(trait)
                     self.trait_set.add(trait)
                     
@@ -432,36 +432,30 @@ class MHS(PerspectivistDataset):
                     split.users[row['annotator_id']].traits.add(trait)
                     self.trait_set.add(trait)
                     
-                    ann_races = ""
                     for r in ["annotator_race_asian", "annotator_race_black", "annotator_race_latinx", "annotator_race_middle_eastern", "annotator_race_native_american", "annotator_race_pacific_islander", "annotator_race_white", "annotator_race_other"]:
                         if row[r]==True:
-                            ann_races += r.split("_")[-1]
-                            ann_races += " "
-                    trait = f"Race: {ann_races}"
-                    split.users[row['annotator_id']].traits.add(trait)
-                    self.trait_set.add(trait)
+                            race = r.split("_")[-1]        
+                            trait = f"Race: {race}"
+                            split.users[row['annotator_id']].traits.add(trait)
+                            self.trait_set.add(trait)
                     
                     trait = f"Age: {row['annotator_age']}"
                     split.users[row['annotator_id']].traits.add(trait)
                     self.trait_set.add(trait)
                     
-                    ann_religion = ""
                     for r in ["annotator_religion_atheist", "annotator_religion_buddhist", "annotator_religion_christian", "annotator_religion_hindu", "annotator_religion_jewish", "annotator_religion_mormon", "annotator_religion_muslim", "annotator_religion_nothing", "annotator_religion_other"]:
                         if row[r]==True:
-                            ann_religion += r.split("_")[-1]
-                            ann_religion += " "
-                    trait = f"Religion: {ann_religion}"
-                    split.users[row['annotator_id']].traits.add(trait)
-                    self.trait_set.add(trait)
+                            religion = r.split("_")[-1]
+                            trait = f"Religion: {religion}"
+                            split.users[row['annotator_id']].traits.add(trait)
+                            self.trait_set.add(trait)
                     
-                    ann_sexuality = ""
                     for r in ["annotator_sexuality_bisexual", "annotator_sexuality_gay", "annotator_sexuality_straight", "annotator_sexuality_other"]:
                         if row[r]==True:
-                            ann_sexuality += r.split("_")[-1]
-                            ann_religion += " "
-                    trait = f"Sexuality: {ann_religion}"
-                    split.users[row['annotator_id']].traits.add(trait)
-                    self.trait_set.add(trait)
+                            sexuality = r.split("_")[-1]
+                            trait = f"Sexuality: {sexuality}"
+                            split.users[row['annotator_id']].traits.add(trait)
+                            self.trait_set.add(trait)
 
             log.info(f"Reading messages (set: {split.type})")
             for row in tqdm(dataset):
@@ -517,7 +511,6 @@ class MHS(PerspectivistDataset):
                 self.development_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
             else:
                 self.test_set.annotation_by_text.update({t: development_test_split.annotation_by_text[t]})
-
     
         # Create strict training set (remove test texts only)
         log.info("Cleaning the training set from test texts")
