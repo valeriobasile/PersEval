@@ -168,6 +168,12 @@ class User:
     
     def __lt__(self, other):
         return self.id < other.id
+    
+    def __eq__(self, other):
+        if self.id == other.id and self.traits == other.traits:
+            return True
+        else:
+            return False
 
 
 class Epic(PerspectivistDataset):
@@ -184,6 +190,7 @@ class Epic(PerspectivistDataset):
 
 
     def get_splits(self, strict=True, user_adaptation=False, named=True):
+        self.training_set = self.development_set = self.test_set = None
 
         if not user_adaptation and not named:
             raise Exception("Invalid parameter configuration (user_adaptation=False, named=False). \
