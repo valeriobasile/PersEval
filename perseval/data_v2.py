@@ -18,12 +18,6 @@ log.basicConfig(
 # changing the random seed will change how the datasets are split into training and test set
 seed(config.seed)
 
-def get_dataset(dataset_name):
-    if dataset_name == "EPIC":
-        return Epic()
-    else:
-        log.error(f"Dataset {dataset_name} not found")
-                
 
 class PerspectivistDataset:
     def __init__(self):
@@ -32,7 +26,7 @@ class PerspectivistDataset:
         self.trait_set = set()
         self.labels = dict()
         self.training_set = None
-        self.development_set = None
+        self.adaptation_set = None
         self.test_set = None
 
     def save(self):            
@@ -52,62 +46,62 @@ class PerspectivistDataset:
         
         print("--- Unique users ---")
         print("Train set: %d" % len(self.training_set.users))
-        if len(self.development_set.users):
-            print("Development set: %d" % len(self.development_set.users))
+        if len(self.adaptation_set.users):
+            print("adaptation set: %d" % len(self.adaptation_set.users))
         print("Test set: %d" % len(self.test_set.users))
         print()
         print("--- Unique texts ---")
         print("Train set: %d" % len(self.training_set.annotation_by_text))
-        if len(self.development_set.annotation_by_text):
-            print("Development set: %d" % len(self.development_set.annotation_by_text))
+        if len(self.adaptation_set.annotation_by_text):
+            print("adaptation set: %d" % len(self.adaptation_set.annotation_by_text))
         print("Test set: %d" % len(self.test_set.annotation_by_text))
         print()
         print("--- Instances (text + user) ---")
         print("Train set: %d" % len(self.training_set.annotation))
-        if len(self.development_set.annotation):
-            print("Development set: %d" % len(self.development_set.annotation))
+        if len(self.adaptation_set.annotation):
+            print("adaptation set: %d" % len(self.adaptation_set.annotation))
         print("Test set: %d" % len(self.test_set.annotation))
         print()
 
-        print("--- User-text train/development/test distribution ---")
-        number_user_train_texts, number_user_dev_texts, number_user_test_texts = [], [], [] 
+        print("--- User-text train/adaptation/test distribution ---")
+        number_user_adapt_texts, number_user_test_texts = [], []
         
         for u in self.test_set.users:
-            user_dev_texts, user_test_texts = 0, 0
-            for i in self.development_set.annotation:
+            user_adapt_texts, user_test_texts = 0, 0
+            for i in self.adaptation_set.annotation:
                 if i[0]==u:
-                    user_dev_texts+=1
+                    user_adapt_texts+=1
             for i in self.test_set.annotation:
                 if i[0]==u:
                     user_test_texts+=1
-            number_user_dev_texts.append(user_dev_texts)
+            number_user_adapt_texts.append(user_adapt_texts)
             number_user_test_texts.append(user_test_texts)
         print("The mean number of texts per users in the test set is %.3f" % np.mean(number_user_test_texts))
-        if self.development_set != PerspectivistSplit(type=="development"):
-            percentage_in_dev = [d/t for d, t in zip(number_user_dev_texts, number_user_test_texts)]
-            print("The mean percentage of texts per users in the development set is %.3f" % np.mean(percentage_in_dev))
-            print("The mean number of texts per users in the development set is %.3f" % np.mean(number_user_dev_texts))
-            print("The min percentage of texts per users in the development set is %.3f (i.e. %.0f instances)" % (np.min(percentage_in_dev), np.min(number_user_dev_texts)))
-            print("The max percentage of texts per users in the development set is %.3f (i.e. %.0f instances)" % (np.max(percentage_in_dev), np.max(number_user_dev_texts)))
+        if self.adaptation_set != PerspectivistSplit(type=="adaptation"):
+            percentage_in_adapt = [d/t for d, t in zip(number_user_adapt_texts, number_user_test_texts)]
+            print("The mean percentage of texts per users in the adaptation set is %.3f" % np.mean(percentage_in_adapt))
+            print("The mean number of texts per users in the adaptation set is %.3f" % np.mean(number_user_adapt_texts))
+            print("The min percentage of texts per users in the adaptation set is %.3f (i.e. %.0f instances)" % (np.min(percentage_in_adapt), np.min(number_user_adapt_texts)))
+            print("The max percentage of texts per users in the adaptation set is %.3f (i.e. %.0f instances)" % (np.max(percentage_in_adapt), np.max(number_user_adapt_texts)))
 
 
     def check_splits(self, user_adaptation, strict, named):
         if user_adaptation == False or user_adaptation == "train":
-            # The development set is empty
-            assert self.development_set == PerspectivistSplit(type="development")
+            # The adaptation set is empty
+            assert self.adaptation_set == PerspectivistSplit(type="adaptation")
         
         # Users
         if user_adaptation == False or user_adaptation == "test":
-            # Train and dev + test users have no overlap
-            assert set(self.training_set.users).intersection(set(self.development_set.users)) == set()
+            # Train and adapt + test users have no overlap
+            assert set(self.training_set.users).intersection(set(self.adaptation_set.users)) == set()
             assert set(self.training_set.users).intersection(set(self.test_set.users)) == set()
         if user_adaptation == "train" and not strict:
             # All test users are also in the training set
             assert set(self.training_set.users).union(set(self.test_set.users)) == set(self.training_set.users) 
         
         # Texts
-        # Dev and test texts have no overlap
-        assert set(self.development_set.texts).intersection(set(self.test_set.texts)) == set()  
+        # adapt and test texts have no overlap
+        assert set(self.adaptation_set.texts).intersection(set(self.test_set.texts)) == set()  
         
         if strict:
             # Strict train and test text have no overlap
@@ -129,7 +123,7 @@ class Instance:
 
 class PerspectivistSplit:
     def __init__(self, type=None):
-        self.type = type # Str, e.g., train, development, test
+        self.type = type # Str, e.g., train, adaptation, test
         self.users = dict() 
         self.texts = dict()
         self.annotation = dict() #user, text, label (Instance + label)
@@ -156,7 +150,6 @@ class PerspectivistSplit:
         else:
             return False
         
-
 
 class User:
     def __init__(self, user):
@@ -188,9 +181,8 @@ class Epic(PerspectivistDataset):
         self.dataset = dataset["train"]
         self.labels["irony"] = set()
 
-
     def get_splits(self, strict=True, user_adaptation=False, named=True):
-        self.training_set = self.development_set = self.test_set = None
+        self.training_set = self.adaptation_set = self.test_set = None
 
         if not user_adaptation and not named:
             raise Exception("Invalid parameter configuration (user_adaptation=False, named=False). \
@@ -198,24 +190,24 @@ class Epic(PerspectivistDataset):
         
         user_ids = set(list(self.dataset['user']))
 
-        # Sample developtment+test users
+        # Sample adapt+test users
         seed(config.seed)
-        development_test_user_ids = sample(sorted(user_ids), int(len(user_ids) * config.dataset_specific_splits[self.name]["user_based_split_percentage"]))
-        train_user_ids = [u for u in user_ids if not u in development_test_user_ids]
-        dev_test_text_id = [t_id for t_id, user in zip(self.dataset["id_original"], self.dataset["user"]) if user in development_test_user_ids]
+        adaptation_test_user_ids = sample(sorted(user_ids), int(len(user_ids) * config.dataset_specific_splits[self.name]["user_based_split_percentage"]))
+        train_user_ids = [u for u in user_ids if not u in adaptation_test_user_ids]
+        adapt_test_text_id = [t_id for t_id, user in zip(self.dataset["id_original"], self.dataset["user"]) if user in adaptation_test_user_ids]
         seed(config.seed)
-        development_text_ids = sample(sorted(dev_test_text_id), int(len(dev_test_text_id) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
-        test_text_ids = [t_id for t_id in dev_test_text_id if t_id not in development_text_ids]
-        train_text_ids = [t_id for t_id in self.dataset["id_original"] if t_id not in dev_test_text_id]
+        adaptation_text_ids = sample(sorted(adapt_test_text_id), int(len(adapt_test_text_id) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
+        test_text_ids = [t_id for t_id in adapt_test_text_id if t_id not in adaptation_text_ids]
+        train_text_ids = [t_id for t_id in self.dataset["id_original"] if t_id not in adapt_test_text_id]
 
-        train_split , development_split, test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="development"), PerspectivistSplit(type="test")
-        splits = [train_split, development_split, test_split]
+        train_split , adaptation_split, test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="adaptation"), PerspectivistSplit(type="test")
+        splits = [train_split, adaptation_split, test_split]
         for split in splits:
             for row in tqdm(self.dataset):
                 # Read user
                 if (row['user'] in train_user_ids and split.type=="train") or \
-                    (row['user'] in development_test_user_ids and split.type=="development") or \
-                      (row['user'] in development_test_user_ids and split.type=="test"):
+                    (row['user'] in adaptation_test_user_ids and split.type=="adaptation") or \
+                      (row['user'] in adaptation_test_user_ids and split.type=="test"):
                     if not row['user'] in split.users:
                         split.users[row['user']] = User(row['user'])
                     
@@ -238,22 +230,22 @@ class Epic(PerspectivistDataset):
                     
                 # Read text
                 if (row['id_original'] in train_text_ids and split.type=="train") or \
-                    (row['id_original'] in development_text_ids and split.type=="development") or \
+                    (row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
                         (row['id_original'] in test_text_ids and split.type=="test"):
                     split.texts[row['id_original']] = {"post": row['parent_text'], "reply": row['text']} 
                 
                 # Read annotation
                 if (row['user'] in train_user_ids and row['id_original'] in train_text_ids and split.type=="train") or \
-                    (row['user'] in development_test_user_ids and row['id_original'] in development_text_ids and split.type=="development") or \
-                        (row['user'] in development_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):                    
+                    (row['user'] in adaptation_test_user_ids and row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
+                        (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):                    
                     split.annotation[(row['user'], row['id_original'])] = {}
                     split.annotation[(row['user'], row['id_original'])]["irony"] = row['label']
                     self.labels["irony"].add(row['label'])
 
                 # Read labels by text
                 if (row['user'] in train_user_ids and row['id_original'] in train_text_ids and split.type=="train") or \
-                    (row['user'] in development_test_user_ids and row['id_original'] in development_text_ids and split.type=="development") or \
-                        (row['user'] in development_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):                    
+                    (row['user'] in adaptation_test_user_ids and row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
+                        (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):                    
                     if not row['id_original'] in split.annotation_by_text:
                         split.annotation_by_text[row['id_original']] = []
                     split.annotation_by_text[row['id_original']].append(
@@ -274,38 +266,38 @@ class Epic(PerspectivistDataset):
 
         if user_adaptation == False:
             # You know nothing about the new test users except their explicit traits
-            # You cannot use their development annotations
+            # You cannot use their adaptation annotations
             self.training_set = train_split
-            self.development_set = PerspectivistSplit(type="development")
+            self.adaptation_set = PerspectivistSplit(type="adaptation")
             self.test_set = test_split
                 
         elif user_adaptation == "train":
             # You can use a few annotations by test users at training time
             # These annotations are directly included in the training split, 
-            # the development split is empty
+            # the adaptation split is empty
 
-            # Train + Dev in the train set
-            train_split.users = {**train_split.users, **development_split.users}
-            train_split.texts = {**train_split.texts, **development_split.texts}
-            train_split.annotation = {**train_split.annotation, **development_split.annotation}
+            # Train + Adapt in the train set
+            train_split.users = {**train_split.users, **adaptation_split.users}
+            train_split.texts = {**train_split.texts, **adaptation_split.texts}
+            train_split.annotation = {**train_split.annotation, **adaptation_split.annotation}
 
-            for t_id in development_split.annotation_by_text.keys():
+            for t_id in adaptation_split.annotation_by_text.keys():
                 if t_id in train_split.annotation_by_text:
                     # add the annotatios
-                    train_split.annotation_by_text[t_id] = train_split.annotation_by_text[t_id] + development_split.annotation_by_text[t_id]
+                    train_split.annotation_by_text[t_id] = train_split.annotation_by_text[t_id] + adaptation_split.annotation_by_text[t_id]
                 else:
-                    train_split.annotation_by_text[t_id] = development_split.annotation_by_text[t_id]
+                    train_split.annotation_by_text[t_id] = adaptation_split.annotation_by_text[t_id]
             self.training_set = train_split
-            self.development_set = PerspectivistSplit(type="development")
+            self.adaptation_set = PerspectivistSplit(type="adaptation")
             self.test_set = test_split
 
                 
         elif user_adaptation == "test":
             # You CANNOT use any test annotations at training time
             # However, you can use a few annotations to adapt your trained system to test users 
-            # These development annotations from test users are in the development split, 
+            # These adaptation annotations from test users are in the adaptation split, 
             self.training_set = train_split
-            self.development_set = development_split
+            self.adaptation_set = adaptation_split
             self.test_set = test_split
                 
         else:
