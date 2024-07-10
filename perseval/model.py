@@ -1,5 +1,6 @@
 import sys
 sys.path.append("..")
+import os
 
 import pandas as pd
 import csv
@@ -65,6 +66,8 @@ class PerspectivistEncoder():
     def predict(self, trainer):
         test_data, ids = self.__generate_data(self.test_split)
         predictions = trainer.predict(test_data)
+        if not os.path.exists(config.prediction_dir): 
+            os.makedirs(config.prediction_dir)  
         with open(config.prediction_dir+"/outputs.csv", "w") as fo:
             writer = csv.DictWriter(
                 fo,
