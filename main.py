@@ -1,4 +1,25 @@
 from perseval.data_v2 import *
+from perseval.model import *
+
+
+brexit_f_f = Brexit()
+print("user_adaptation=False, strict=False")
+brexit_f_f.get_splits(user_adaptation=False, strict=False)
+
+model = PerspectivistEncoder("roberta-base", 
+                             brexit_f_f.training_set,
+                             brexit_f_f.test_set, 
+                             "hs", 
+                             brexit_f_f.traits, 
+                             named=True)
+trainer = model.train()
+model.predict(trainer)
+
+
+
+
+'''
+# Check splits work for all splits
 
 brexit_f_f = Brexit()
 print("user_adaptation=False, strict=False")
@@ -99,3 +120,4 @@ assert epic_f_f.test_set.users == epic_f_t.test_set.users == epic_tr_t.test_set.
 assert epic_f_f.test_set.texts == epic_f_t.test_set.texts == epic_tr_t.test_set.texts == epic_tr_f.test_set.texts == epic_te_t.test_set.texts == epic_tr_f.test_set.texts
 assert epic_f_f.test_set.annotation == epic_f_t.test_set.annotation == epic_tr_t.test_set.annotation == epic_tr_f.test_set.annotation == epic_te_t.test_set.annotation == epic_tr_f.test_set.annotation
 assert epic_f_f.test_set.annotation_by_text == epic_f_t.test_set.annotation_by_text == epic_tr_t.test_set.annotation_by_text == epic_tr_f.test_set.annotation_by_text == epic_te_t.test_set.annotation_by_text == epic_tr_f.test_set.annotation_by_text
+'''

@@ -1,4 +1,3 @@
-
 import pickle
 import logging as log
 from os.path import isfile
@@ -8,6 +7,7 @@ from tqdm import tqdm
 import numpy as np
 from datasets import load_dataset, concatenate_datasets
 from sklearn.model_selection import train_test_split
+
 from . import config
 
 log.basicConfig(
@@ -23,7 +23,7 @@ class PerspectivistDataset:
     def __init__(self):
         self.name = None
         self.filename = None
-        self.trait_set = set()
+        self.traits = {}
         self.labels = dict()
         self.training_set = None
         self.adaptation_set = None
@@ -40,7 +40,6 @@ class PerspectivistDataset:
             self.__dict__, self.training_set, self.test_set = pickle.load(f)
 
     def describe_splits(self):
-        # TODO: check
         if not self.training_set:
             raise Exception("You need to first choose a task through "+self.name+".get_splits(task_name, named, strict)")
         
@@ -86,7 +85,6 @@ class PerspectivistDataset:
 
 
     def check_splits(self, user_adaptation, strict, named):
-        print(set(self.training_set.users), set(self.test_set.users))
         if user_adaptation == False or user_adaptation == "train":
             # The adaptation set is empty
             assert self.adaptation_set == PerspectivistSplit(type="adaptation")
@@ -155,7 +153,7 @@ class PerspectivistSplit:
 class User:
     def __init__(self, user):
         self.id = user
-        self.traits = set()
+        self.traits = dict()
 
     def __repr__(self):
         return "User: " + str(self.id)
@@ -180,6 +178,7 @@ class Epic(PerspectivistDataset):
             return
         dataset = load_dataset("Multilingual-Perspectivist-NLU/EPIC")
         self.dataset = dataset["train"]
+        self.dataset = self.dataset.map(lambda x: {"label": {"iro":1, "not":0}[x["label"]]})
         self.labels["irony"] = set()
 
     def get_splits(self, strict=True, user_adaptation=False, named=True):
@@ -214,20 +213,26 @@ class Epic(PerspectivistDataset):
                     
                     # Read traits only if named
                     if named:
-                        trait = f"Gender: {row['Sex']}"
-                        split.users[row['user']].traits.add(trait)
-                        self.trait_set.add(trait)
+                        split.users[row['user']].traits["Gender"]=[row['Sex']]
+                        if "Gender" in self.traits:
+                            self.traits["Gender"].add(row["Sex"])
+                        else:
+                            self.traits["Gender"] = {(row["Sex"])}
 
-                        trait = f"Nationality: {row['Nationality']}"
-                        split.users[row['user']].traits.add(trait)
-                        self.trait_set.add(trait)
-
+                        split.users[row['user']].traits["Nationality"]=[row['Nationality']]
+                        if "Nationality" in self.traits:
+                            self.traits["Nationality"].add(row["Nationality"])
+                        else:
+                            self.traits["Nationality"] = {(row["Nationality"])}
                         try:
-                            trait = f"Age: {self.__convert_age(int(row['Age']))}"
-                            split.users[row['user']].traits.add(trait)
-                            self.trait_set.add(trait)
+                            generation = self.__convert_age(int(row['Age']))
+                            split.users[row['user']].traits["Generation"]=[generation]
+                            if "Generation" in self.traits:
+                                self.traits["Generation"].add(generation)
+                            else:
+                                self.traits["Generation"] = {generation}
                         except ValueError as e:
-                            pass
+                            split.users[row['user']].traits["Generation"]=["UNK"]
                     
                 # Read text
                 if (row['id_original'] in train_text_ids and split.type=="train") or \
@@ -306,7 +311,7 @@ class Epic(PerspectivistDataset):
                 
         self.check_splits(user_adaptation, strict, named)
         
-                    
+
     def __convert_age(self, age):
         """Function to convert the age, represented as an integer,
         into a label, according to Table 1 in the paper
@@ -375,9 +380,11 @@ class Brexit(PerspectivistDataset):
                     
                     # Read traits only if named
                     if named:
-                        trait = f"Group: {row['annotator_group']}"
-                        split.users[row['annotator_id']].traits.add(trait)
-                        self.trait_set.add(trait)
+                        split.users[row['annotator_id']].traits["Group"]=[row['annotator_group']]                        
+                        if "Group" in self.traits:
+                            self.traits["Group"].add(row['annotator_group'])
+                        else:
+                            self.traits["Group"] = {row['annotator_group']}
 
                 # Read text
                 if (row['instance_id'] in train_text_ids and split.type=="train") or \
@@ -458,3 +465,4 @@ class Brexit(PerspectivistDataset):
             raise Exception("TODO: explain the possibilities")
                 
         self.check_splits(user_adaptation, strict, named)
+
