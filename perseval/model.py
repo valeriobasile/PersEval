@@ -14,12 +14,12 @@ import numpy as np
 from . import config
 
 class PerspectivistEncoder():
-    def __init__(self, model_identifier, training_split, test_split, label, traits, named):
+    def __init__(self, model_identifier, persp_dataset, label, named):
         self.model_id = model_identifier
-        self.training_split = training_split
-        self.test_split = test_split
+        self.training_split = persp_dataset.training_set
+        self.test_split = persp_dataset.test_set
         self.label = label
-        self.traits = traits
+        self.traits = persp_dataset.traits
         self.named = named
     
         self.tokenizer = AutoTokenizer.from_pretrained(model_identifier)
@@ -40,7 +40,7 @@ class PerspectivistEncoder():
             class_weights = np.array([1, 1]).astype("float32")
 
 
-        print('We will use the device:', torch.cuda.get_device_name(0))
+        #print('We will use the device:', torch.cuda.get_device_name(0))
         training_args = TrainingArguments(
             output_dir=config.model_config[self.model_id]["output_dir"],
             num_train_epochs=config.model_config[self.model_id]["num_train_epochs"],
@@ -68,7 +68,7 @@ class PerspectivistEncoder():
         predictions = trainer.predict(test_data)
         if not os.path.exists(config.prediction_dir): 
             os.makedirs(config.prediction_dir)  
-        with open(config.prediction_dir+"/outputs.csv", "w") as fo:
+        with open(config.prediction_dir+"/predictions.csv", "w") as fo:
             writer = csv.DictWriter(
                 fo,
                 fieldnames=[
@@ -86,6 +86,7 @@ class PerspectivistEncoder():
 
 
     def __generate_data(self, split):
+        print("---------- Global metrics ----------")
         self.__add_special_tokens_to_tokenizer(split, self.named)
         ids, texts, labels = [], [], []
         for ann in split.annotation:
@@ -150,7 +151,7 @@ class CustomTrainer(Trainer):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get("logits")
-        loss_fct = torch.nn.CrossEntropyLoss(weight=torch.tensor(self.class_weights)).to("cuda")
+        loss_fct = torch.nn.CrossEntropyLoss(weight=torch.tensor(self.class_weights))#.to("cuda")
         BCEloss = loss_fct(logits.view(-1, model.config.num_labels), labels.view(-1))
 
         # Focal Loss

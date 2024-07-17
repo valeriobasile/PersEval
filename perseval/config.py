@@ -41,4 +41,4 @@ padding="max_length"
 truncation=True
 max_length=512
 
-prediction_dir = "Results"
+prediction_dir = "predictions"

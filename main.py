@@ -1,19 +1,33 @@
-from perseval.data_v2 import *
+from perseval.data import *
 from perseval.model import *
+from perseval.evaluation import *
 
 
-brexit_f_f = Brexit()
-print("user_adaptation=False, strict=False")
+brexit_f_f = Epic()
 brexit_f_f.get_splits(user_adaptation=False, strict=False)
 
 model = PerspectivistEncoder("roberta-base", 
-                             brexit_f_f.training_set,
-                             brexit_f_f.test_set, 
-                             "hs", 
-                             brexit_f_f.traits, 
-                             named=True)
-trainer = model.train()
-model.predict(trainer)
+                             brexit_f_f, 
+                            "irony", 
+                            named=True)
+
+#trainer = model.train()
+#model.predict(trainer) # <-- Predictions are saved in the "predictions" folder, 
+                       #     in a predictions.csv file.
+                       #     The file must contain three columns:
+                       #     "user_id", "text_id", "label"
+
+evaluator = Evaluator(prediction_path="predictions/predictions.csv",
+                      test_set=brexit_f_f.test_set,
+                      label="irony")
+evaluator.global_metrics()
+evaluator.annotator_level_metrics()
+
+# You can also access the metrics from
+# print(evaluator.global_metrics)
+# print(evaluator.annotator_level_metrics)
+# print(evaluator.annotator_based_macro_avg)
+
 
 
 
