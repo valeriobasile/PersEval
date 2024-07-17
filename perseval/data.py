@@ -2,6 +2,7 @@ import pickle
 import logging as log
 from os.path import isfile
 from random import seed, sample
+from dataclasses import dataclass                                               
 
 from tqdm import tqdm
 import numpy as np
@@ -19,6 +20,7 @@ log.basicConfig(
 seed(config.seed)
 
 
+@dataclass
 class PerspectivistDataset:
     def __init__(self):
         self.name = None
@@ -76,6 +78,7 @@ class PerspectivistDataset:
             number_user_adapt_texts.append(user_adapt_texts)
             number_user_test_texts.append(user_test_texts)
         print("The mean number of texts per users in the test set is %.3f" % np.mean(number_user_test_texts))
+        
         if self.adaptation_set != PerspectivistSplit(type=="adaptation"):
             percentage_in_adapt = [d/t for d, t in zip(number_user_adapt_texts, number_user_test_texts)]
             print("The mean percentage of texts per users in the adaptation set is %.3f" % np.mean(percentage_in_adapt))
@@ -130,6 +133,7 @@ class PerspectivistDataset:
         log.info("All tests passed")
 
 
+@dataclass
 class Instance:
     def __init__(self, instance_id, instance_text, user, label):
         self.instance_id = instance_id
@@ -141,6 +145,7 @@ class Instance:
         return f"{self.instance_id} {self.user} {self.label}"
 
 
+@dataclass
 class PerspectivistSplit:
     def __init__(self, type=None):
         self.type = type # Str, e.g., train, adaptation, test
@@ -160,17 +165,8 @@ class PerspectivistSplit:
     def __len__(self):
         return len(self.annotation)
     
-    def __eq__(self, other):
-        if self.type == other.type and \
-            (self.users == other.users) and \
-            (self.texts == other.texts) and \
-            (self.annotation == other.annotation) and\
-            (self.annotation_by_text == other.annotation_by_text):
-            return True
-        else:
-            return False
-        
 
+@dataclass
 class User:
     def __init__(self, user):
         self.id = user
@@ -189,6 +185,7 @@ class User:
             return False
 
 
+@dataclass
 class Epic(PerspectivistDataset):
     def __init__(self):
         super(Epic, self).__init__()
@@ -349,7 +346,7 @@ class Epic(PerspectivistDataset):
             return "GenZ"
 
 
-
+@dataclass
 class Brexit(PerspectivistDataset):
     def __init__(self):
         super(Brexit, self).__init__()
@@ -486,4 +483,3 @@ class Brexit(PerspectivistDataset):
             raise Exception("TODO: explain the possibilities")
                 
         self.check_splits(user_adaptation, strict, named)
-
