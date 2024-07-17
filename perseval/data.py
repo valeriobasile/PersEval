@@ -100,12 +100,33 @@ class PerspectivistDataset:
         
         # Texts
         # adapt and test texts have no overlap
-        assert set(self.adaptation_set.texts).intersection(set(self.test_set.texts)) == set()  
-        
+        if user_adaptation == "test":
+            assert set(self.adaptation_set.texts).intersection(set(self.test_set.texts)) == set()  
+
+        for u in self.test_set.users:
+            user_train_texts, user_adapt_texts, user_test_texts = 0, 0, 0
+            for i in self.training_set.annotation:
+                if i[0]==u:
+                    user_train_texts+=1 
+            for i in self.adaptation_set.annotation:
+                if i[0]==u:
+                    user_adapt_texts+=1
+            for i in self.test_set.annotation:
+                if i[0]==u:
+                    user_test_texts+=1
+            
+        if user_adaptation == "train":
+            # All test users and corresponding training users must have at least one annotation
+            assert user_train_texts != 0
+            assert user_test_texts != 0
+        if user_adaptation == "test":
+            # All test users and corresponding adapt users must have at least one annotation
+            assert user_adapt_texts != 0
+            assert user_test_texts != 0
+
         if strict:
             # Strict train and test text have no overlap
             assert set(self.training_set.texts).intersection(set(self.test_set.texts)) == set()  
-        
         log.info("All tests passed")
 
 

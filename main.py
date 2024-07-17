@@ -2,7 +2,7 @@ from perseval.data import *
 from perseval.model import *
 from perseval.evaluation import *
 
-
+'''
 brexit_f_f = Epic()
 brexit_f_f.get_splits(user_adaptation=False, strict=False)
 
@@ -27,6 +27,8 @@ evaluator.annotator_level_metrics()
 # print(evaluator.global_metrics)
 # print(evaluator.annotator_level_metrics)
 # print(evaluator.annotator_based_macro_avg)
+
+'''
 
 
 
@@ -84,6 +86,7 @@ assert brexit_f_f.test_set.users == brexit_f_t.test_set.users == brexit_tr_t.tes
 assert brexit_f_f.test_set.texts == brexit_f_t.test_set.texts == brexit_tr_t.test_set.texts == brexit_tr_f.test_set.texts == brexit_te_t.test_set.texts == brexit_tr_f.test_set.texts
 assert brexit_f_f.test_set.annotation == brexit_f_t.test_set.annotation == brexit_tr_t.test_set.annotation == brexit_tr_f.test_set.annotation == brexit_te_t.test_set.annotation == brexit_tr_f.test_set.annotation
 assert brexit_f_f.test_set.annotation_by_text == brexit_f_t.test_set.annotation_by_text == brexit_tr_t.test_set.annotation_by_text == brexit_tr_f.test_set.annotation_by_text == brexit_te_t.test_set.annotation_by_text == brexit_tr_f.test_set.annotation_by_text
+'''
 
 epic_f_f = Epic()
 print("user_adaptation=False, strict=False")
@@ -134,4 +137,3 @@ assert epic_f_f.test_set.users == epic_f_t.test_set.users == epic_tr_t.test_set.
 assert epic_f_f.test_set.texts == epic_f_t.test_set.texts == epic_tr_t.test_set.texts == epic_tr_f.test_set.texts == epic_te_t.test_set.texts == epic_tr_f.test_set.texts
 assert epic_f_f.test_set.annotation == epic_f_t.test_set.annotation == epic_tr_t.test_set.annotation == epic_tr_f.test_set.annotation == epic_te_t.test_set.annotation == epic_tr_f.test_set.annotation
 assert epic_f_f.test_set.annotation_by_text == epic_f_t.test_set.annotation_by_text == epic_tr_t.test_set.annotation_by_text == epic_tr_f.test_set.annotation_by_text == epic_te_t.test_set.annotation_by_text == epic_tr_f.test_set.annotation_by_text
-'''
