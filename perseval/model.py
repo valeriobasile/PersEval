@@ -33,9 +33,10 @@ class PerspectivistEncoder():
         try:
             class_weights = compute_class_weight(
                 "balanced",
-                classes=[0, 1],
+                classes=np.unique(data["train"]["labels"].float().numpy()),
                 y=data["train"]["labels"].float().numpy()).astype("float32")
-        except:
+        except Exception as e:
+            print(e)
             print("unable to balance classes")
             class_weights = np.array([1, 1]).astype("float32")
 
