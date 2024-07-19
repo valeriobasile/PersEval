@@ -2,7 +2,8 @@ import pickle
 import logging as log
 from os.path import isfile
 from random import seed, sample
-from dataclasses import dataclass                                               
+from dataclasses import dataclass  
+import copy                                             
 
 from tqdm import tqdm
 import numpy as np
@@ -30,6 +31,8 @@ class PerspectivistDataset:
         self.training_set = None
         self.adaptation_set = None
         self.test_set = None
+        self.user_adaptation = None
+        self.named = None
 
     def save(self):            
         log.info(f"Saving {self.name} to {self.filename}")
@@ -42,7 +45,7 @@ class PerspectivistDataset:
             self.__dict__, self.training_set, self.test_set = pickle.load(f)
 
     def describe_splits(self):
-        if not self.training_set:
+        if not self.training_set.users:
             raise Exception("You need to first choose a task through "+self.name+".get_splits(task_name, named, strict)")
         
         print("--- Unique users ---")
@@ -88,7 +91,7 @@ class PerspectivistDataset:
 
 
     def check_splits(self, user_adaptation, strict, named):
-        if user_adaptation == False or user_adaptation == "train":
+        if user_adaptation == False:
             # The adaptation set is empty
             assert self.adaptation_set == PerspectivistSplit(type="adaptation")
         
@@ -118,7 +121,7 @@ class PerspectivistDataset:
                 if i[0]==u:
                     user_test_texts+=1
             
-        if user_adaptation == "train":
+        if user_adaptation == "train" and not strict:
             # All test users and corresponding training users must have at least one annotation
             assert user_train_texts != 0
             assert user_test_texts != 0
@@ -200,6 +203,9 @@ class Epic(PerspectivistDataset):
         self.labels["irony"] = set()
 
     def get_splits(self, strict=True, user_adaptation=False, named=True):
+        self.user_adaptation = user_adaptation
+        self.named = named
+
         self.training_set = self.adaptation_set = self.test_set = None
 
         if not user_adaptation and not named:
@@ -216,7 +222,6 @@ class Epic(PerspectivistDataset):
         seed(config.seed)
         adaptation_text_ids = sample(sorted(adapt_test_text_id), int(len(adapt_test_text_id) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
         test_text_ids = [t_id for t_id in adapt_test_text_id if t_id not in adaptation_text_ids]
-        train_text_ids = [t_id for t_id in self.dataset["id_original"] if t_id not in adapt_test_text_id]
 
         train_split , adaptation_split, test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="adaptation"), PerspectivistSplit(type="test")
         splits = [train_split, adaptation_split, test_split]
@@ -253,41 +258,29 @@ class Epic(PerspectivistDataset):
                             split.users[row['user']].traits["Generation"]=["UNK"]
                     
                 # Read text
-                if (row['id_original'] in train_text_ids and split.type=="train") or \
-                    (row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
-                        (row['id_original'] in test_text_ids and split.type=="test"):
+                if (row['user'] in train_user_ids and split.type=="train") or \
+                    (row['user'] in adaptation_test_user_ids and row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
+                        (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):
                     split.texts[row['id_original']] = {"post": row['parent_text'], "reply": row['text']} 
                 
                 # Read annotation
-                if (row['user'] in train_user_ids and row['id_original'] in train_text_ids and split.type=="train") or \
+                if (row['user'] in train_user_ids and split.type=="train") or \
                     (row['user'] in adaptation_test_user_ids and row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
-                        (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):                    
+                        (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):
                     split.annotation[(row['user'], row['id_original'])] = {}
                     split.annotation[(row['user'], row['id_original'])]["irony"] = row['label']
                     self.labels["irony"].add(row['label'])
 
                 # Read labels by text
-                if (row['user'] in train_user_ids and row['id_original'] in train_text_ids and split.type=="train") or \
+                if (row['user'] in train_user_ids and split.type=="train") or \
                     (row['user'] in adaptation_test_user_ids and row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
-                        (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):                    
+                        (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):
                     if not row['id_original'] in split.annotation_by_text:
                         split.annotation_by_text[row['id_original']] = []
                     split.annotation_by_text[row['id_original']].append(
                         {"user": split.users[row['user']], "label": {"irony": row['label']}})
                     self.labels["irony"].add(row['label'])
-                
-        if strict:
-            strict_train_split = train_split
-            strict_train_split.annotation_by_text = {t:train_split.annotation_by_text[t] for t in train_split.annotation_by_text if t not in test_split.annotation_by_text}
-            # Filter annotation and users
-            for u, t in train_split.annotation:
-                if t in test_split.annotation_by_text:
-                    strict_train_split.annotation.update({(u, t): train_split.annotation[(u, t)]})
-                    strict_train_split.users[u] = User(u)
-            # Filter texts
-            strict_train_split.texts = {k:train_split.texts[k] for k in train_split.texts if not k in test_split.texts}
-            train_split = strict_train_split
-
+        
         if user_adaptation == False:
             # You know nothing about the new test users except their explicit traits
             # You cannot use their adaptation annotations
@@ -323,11 +316,23 @@ class Epic(PerspectivistDataset):
             self.training_set = train_split
             self.adaptation_set = adaptation_split
             self.test_set = test_split
-                
         else:
-            raise Exception("TODO: explain the possibilities")
-                
+            raise Exception("Possible values are False, train and test")
+
+        if strict:
+            strict_train_split = self.training_set
+            strict_train_split.annotation_by_text = {t:self.training_set.annotation_by_text[t] for t in self.training_set.annotation_by_text if t not in self.test_set.annotation_by_text}
+            # Filter annotations
+            for u, t in copy.deepcopy(self.training_set.annotation):
+                if t in self.test_set.annotation_by_text:
+                    strict_train_split.annotation.pop((u, t))
+    
+            # Filter texts
+            strict_train_split.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
+            self.training_set = strict_train_split
+
         self.check_splits(user_adaptation, strict, named)
+        self.describe_splits()
         
 
     def __convert_age(self, age):
