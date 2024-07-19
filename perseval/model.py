@@ -40,7 +40,7 @@ class PerspectivistEncoder():
             class_weights = np.array([1, 1]).astype("float32")
 
 
-        #print('We will use the device:', torch.cuda.get_device_name(0))
+        print('We will use the device:', torch.cuda.get_device_name(0))
         training_args = TrainingArguments(
             output_dir=config.model_config[self.model_id]["output_dir"],
             num_train_epochs=config.model_config[self.model_id]["num_train_epochs"],
@@ -151,7 +151,7 @@ class CustomTrainer(Trainer):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get("logits")
-        loss_fct = torch.nn.CrossEntropyLoss(weight=torch.tensor(self.class_weights))#.to("cuda")
+        loss_fct = torch.nn.CrossEntropyLoss(weight=torch.tensor(self.class_weights)).to("cuda")
         BCEloss = loss_fct(logits.view(-1, model.config.num_labels), labels.view(-1))
 
         # Focal Loss
