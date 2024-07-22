@@ -14,19 +14,24 @@ import numpy as np
 from . import config
 
 class PerspectivistEncoder():
-    def __init__(self, model_identifier, persp_dataset, label, named):
+    def __init__(self, model_identifier, persp_dataset, label):
         self.model_id = model_identifier
         self.training_split = persp_dataset.training_set
+        self.adaptation_split = persp_dataset.adaptation_set        
         self.test_split = persp_dataset.test_set
         self.label = label
         self.traits = persp_dataset.traits
-        self.named = named
+        self.named = persp_dataset.named
+        self.user_adaptation = persp_dataset.user_adaptation
+        self.strict = persp_dataset.strict
+        self.dataset = persp_dataset.name 
     
         self.tokenizer = AutoTokenizer.from_pretrained(model_identifier)
         self.model = AutoModelForSequenceClassification.from_pretrained(model_identifier)
 
 
     def train(self):
+        self.__add_special_tokens_to_tokenizer()
         set_seed(config.seed)
         data = {"train" : self.__generate_data(self.training_split)[0]}   
         # computer class weight (in case labels are unbalanced)        
@@ -43,6 +48,7 @@ class PerspectivistEncoder():
 
         print('We will use the device:', torch.cuda.get_device_name(0))
         training_args = TrainingArguments(
+            seed=config.seed,
             output_dir=config.model_config[self.model_id]["output_dir"],
             num_train_epochs=config.model_config[self.model_id]["num_train_epochs"],
             learning_rate=config.model_config[self.model_id]["learning_rate"],
@@ -69,7 +75,7 @@ class PerspectivistEncoder():
         predictions = trainer.predict(test_data)
         if not os.path.exists(config.prediction_dir): 
             os.makedirs(config.prediction_dir)  
-        with open(config.prediction_dir+"/predictions.csv", "w") as fo:
+        with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.strict), "w") as fo:
             writer = csv.DictWriter(
                 fo,
                 fieldnames=[
@@ -87,8 +93,6 @@ class PerspectivistEncoder():
 
 
     def __generate_data(self, split):
-        print("---------- Global metrics ----------")
-        self.__add_special_tokens_to_tokenizer(split, self.named)
         ids, texts, labels = [], [], []
         for ann in split.annotation:
             ids.append(ann)
@@ -122,15 +126,16 @@ class PerspectivistEncoder():
         return enriched_text
     
     
-    def __add_special_tokens_to_tokenizer(self, split, named):
+    def __add_special_tokens_to_tokenizer(self):
         special_tokens_dict = {"additional_special_tokens": []}
         new_tokens = set()
-        for user in split.users:
-            new_tokens.add('<{}>'.format(user))
-            if named:
-                for dim in self.traits:
-                    for trait in list(self.traits[dim]):
-                        new_tokens.add('<{}:{}>'.format(dim, trait))
+        for split in [self.training_split, self.adaptation_split, self.test_split]:
+            for user in split.users:
+                new_tokens.add('<{}>'.format(user))
+                if self.named:
+                    for dim in self.traits:
+                        for trait in list(self.traits[dim]):
+                            new_tokens.add('<{}:{}>'.format(dim, trait))
         special_tokens_dict['additional_special_tokens'] = list(new_tokens)        
         self.tokenizer.add_special_tokens(special_tokens_dict)
         self.model.resize_token_embeddings(len(self.tokenizer)) 

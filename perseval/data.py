@@ -33,6 +33,7 @@ class PerspectivistDataset:
         self.test_set = None
         self.user_adaptation = None
         self.named = None
+        self.strict = None
 
     def save(self):            
         log.info(f"Saving {self.name} to {self.filename}")
@@ -100,7 +101,7 @@ class PerspectivistDataset:
             # Train and adapt + test users have no overlap
             assert set(self.training_set.users).intersection(set(self.adaptation_set.users)) == set()
             assert set(self.training_set.users).intersection(set(self.test_set.users)) == set()
-        if user_adaptation == "train" and not strict:
+        if user_adaptation == "train":# and not strict:
             # All test users are also in the training set
             assert set(self.training_set.users).union(set(self.test_set.users)) == set(self.training_set.users) 
         
@@ -202,9 +203,12 @@ class Epic(PerspectivistDataset):
         self.dataset = self.dataset.map(lambda x: {"label": {"iro":1, "not":0}[x["label"]]})
         self.labels["irony"] = set()
 
-    def get_splits(self, strict=True, user_adaptation=False, named=True):
+    def get_splits(self, strict, user_adaptation, named):
+        log.info("Generationg Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
+        
         self.user_adaptation = user_adaptation
         self.named = named
+        self.strict = strict
 
         self.training_set = self.adaptation_set = self.test_set = None
 
@@ -366,7 +370,8 @@ class Brexit(PerspectivistDataset):
         for label in labels:
             self.labels[label] = set()
 
-    def get_splits(self, strict=True, user_adaptation=False, named=True):
+    def get_splits(self, strict, user_adaptation, named):
+        log.info("Generationg Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
         self.training_set = self.adaptation_set = self.test_set = None
 
         if not user_adaptation and not named:
@@ -410,24 +415,24 @@ class Brexit(PerspectivistDataset):
                             self.traits["Group"] = {row['annotator_group']}
 
                 # Read text
-                if (row['instance_id'] in train_text_ids and split.type=="train") or \
-                    (row['instance_id'] in adaptation_text_ids and split.type=="adaptation") or \
-                        (row['instance_id'] in test_text_ids and split.type=="test"):
+                if (row['annotator_id'] in train_user_ids and split.type=="train") or \
+                    (row['annotator_id'] in adaptation_test_user_ids and  row['instance_id'] in adaptation_text_ids and split.type=="adaptation") or \
+                        (row['annotator_id'] in adaptation_test_user_ids and row['instance_id'] in test_text_ids and split.type=="test"):
                    split.texts[row['instance_id']] = {"tweet": row['tweet']}
                 
                 # Read annotation
-                if (row['annotator_id'] in train_user_ids and row['instance_id'] in train_text_ids and split.type=="train") or \
-                    (row['annotator_id'] in adaptation_test_user_ids and row['instance_id'] in adaptation_text_ids and split.type=="adaptation") or \
-                        (row['annotator_id'] in adaptation_test_user_ids and row['instance_id'] in test_text_ids and split.type=="test"):                    
+                if (row['annotator_id'] in train_user_ids and split.type=="train") or \
+                    (row['annotator_id'] in adaptation_test_user_ids and  row['instance_id'] in adaptation_text_ids and split.type=="adaptation") or \
+                        (row['annotator_id'] in adaptation_test_user_ids and row['instance_id'] in test_text_ids and split.type=="test"):
                     split.annotation[(row['annotator_id'], row['instance_id'])] = {}
                     for label in self.labels:
                         split.annotation[(row['annotator_id'], row['instance_id'])][label] = row[label]
                         self.labels[label].add(row[label])
 
                 # Read labels by text
-                if (row['annotator_id'] in train_user_ids and row['instance_id'] in train_text_ids and split.type=="train") or \
-                    (row['annotator_id'] in adaptation_test_user_ids and row['instance_id'] in adaptation_text_ids and split.type=="adaptation") or \
-                        (row['annotator_id'] in adaptation_test_user_ids and row['instance_id'] in test_text_ids and split.type=="test"):                    
+                if (row['annotator_id'] in train_user_ids and split.type=="train") or \
+                    (row['annotator_id'] in adaptation_test_user_ids and  row['instance_id'] in adaptation_text_ids and split.type=="adaptation") or \
+                        (row['annotator_id'] in adaptation_test_user_ids and row['instance_id'] in test_text_ids and split.type=="test"):
                     if not row['instance_id'] in split.annotation_by_text:
                         split.annotation_by_text[row['instance_id']] = []
                     labels_dict = {label: row[label] for label in self.labels}    
@@ -436,18 +441,7 @@ class Brexit(PerspectivistDataset):
                     for label in self.labels:
                         self.labels[label].add(row[label])
                 
-        if strict:
-            strict_train_split = train_split
-            strict_train_split.annotation_by_text = {t:train_split.annotation_by_text[t] for t in train_split.annotation_by_text if t not in test_split.annotation_by_text}
-            # Filter annotation and users
-            for u, t in train_split.annotation:
-                if t in test_split.annotation_by_text:
-                    strict_train_split.annotation.update({(u, t): train_split.annotation[(u, t)]})
-                    strict_train_split.users[u] = User(u)
-            # Filter texts
-            strict_train_split.texts = {k:train_split.texts[k] for k in train_split.texts if not k in test_split.texts}
-            train_split = strict_train_split
-
+        
         if user_adaptation == False:
             # You know nothing about the new test users except their explicit traits
             # You cannot use their adaptation annotations
@@ -486,5 +480,20 @@ class Brexit(PerspectivistDataset):
                 
         else:
             raise Exception("TODO: explain the possibilities")
-                
+
+        
+        if strict:
+            strict_train_split = self.training_set
+            strict_train_split.annotation_by_text = {t:self.training_set.annotation_by_text[t] for t in self.training_set.annotation_by_text if t not in self.test_set.annotation_by_text}
+            # Filter annotations
+            for u, t in copy.deepcopy(self.training_set.annotation):
+                if t in self.test_set.annotation_by_text:
+                    strict_train_split.annotation.pop((u, t))
+    
+            # Filter texts
+            strict_train_split.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
+            self.training_set = strict_train_split
+
+
         self.check_splits(user_adaptation, strict, named)
+        self.describe_splits()

@@ -23,17 +23,16 @@ dataset_specific_splits = {
 model_config = {
     "roberta-base": {
         "output_dir": "./results",
-        "num_train_epochs": 1, 
-        "learning_rate": 1e-5,
-        "per_device_train_batch_size": 16,
-        "per_device_eval_batch_size": 16, 
+        "num_train_epochs": 5, 
+        "learning_rate": 5e-6,
+        "per_device_train_batch_size": 32,
+        "per_device_eval_batch_size": 32, 
         "evaluation_strategy": "epoch",
         "save_strategy": "epoch",
         "logging_strategy": "epoch",
         "overwrite_output_dir": True,
         "load_best_model_at_end": True,
         "report_to": None
-
     }
 }
 
