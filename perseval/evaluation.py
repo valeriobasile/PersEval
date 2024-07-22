@@ -4,6 +4,7 @@ from sklearn.metrics import classification_report
 
 class Evaluator():
     def __init__(self, prediction_path, test_set, label):
+        self.test_set = test_set
         self.predictions = pd.read_csv(prediction_path)
         self.label = label
         
@@ -28,7 +29,7 @@ class Evaluator():
 
 
     def global_metrics(self):
-        print("----- Global metrics -----")
+        print("\n----- Global metrics -----")
         self.global_metrics = classification_report(
             self.ordered_pred["gold"], 
             self.ordered_pred["predictions"], 
@@ -42,7 +43,7 @@ class Evaluator():
     
 
     def annotator_level_metrics(self):
-        print("----- Annotator-level metrics -----")
+        print("\n----- Annotator-level metrics -----")
         self.annotator_level_metrics = {}
         all_annotator_level_metrics = {}
         for annotator in list(set(self.ordered_pred["user_id"])):
@@ -68,7 +69,7 @@ class Evaluator():
                     else:
                         all_annotator_level_metrics[label].append(self.annotator_level_metrics[annotator][label])
         
-        print("Annotator-level macro average")
+        print("\nAnnotator-level macro average")
         self.annotator_based_macro_avg = {}        
         for label in all_annotator_level_metrics:
             if not isinstance(all_annotator_level_metrics[label], list):
@@ -83,7 +84,7 @@ class Evaluator():
         
 
     def text_level_metrics(self):
-        print("----- Text-level metrics -----")
+        print("\n----- Text-level metrics -----")
         self.text_level_metrics = {}
         all_text_level_metrics = {}
         for text in list(set(self.ordered_pred["text_id"])):
@@ -109,7 +110,7 @@ class Evaluator():
                     else:
                         all_text_level_metrics[label].append(self.text_level_metrics[text][label])
         
-        print("Text-level macro average")
+        print("\nText-level macro average")
         self.text_based_macro_avg = {}        
         for label in all_text_level_metrics:
             if not isinstance(all_text_level_metrics[label], list):
@@ -121,4 +122,73 @@ class Evaluator():
             else:
                 self.text_based_macro_avg[label] = np.mean(all_text_level_metrics[label])
                 print("%s --- %.3f" % (label, np.mean(all_text_level_metrics[label])))
+
+    
+    def trait_level_metrics(self):
+        print("\n----- Trait-level metrics -----")        
+        self.trait_level_metrics = {}
+        all_trait_level_metrics = {}
+
+        trait_to_annotator = {}
+        for annotator in self.test_set.users:
+            a = self.test_set.users[annotator]
+            for dim in a.traits:
+                if dim not in trait_to_annotator:
+                    trait_to_annotator[dim] = {}
+                    trait_to_annotator[dim][a.traits[dim][0]] = [a.id]
+                else:
+                    if not a.traits[dim][0] in trait_to_annotator[dim]:
+                        trait_to_annotator[dim][a.traits[dim][0]] = [a.id]
+                    else:
+                        trait_to_annotator[dim][a.traits[dim][0]].append(a.id)
         
+        
+        
+        for dim in trait_to_annotator:
+            if dim not in self.trait_level_metrics:
+                self.trait_level_metrics[dim] = {} 
+            if dim not in all_trait_level_metrics:
+                all_trait_level_metrics[dim] = {}
+
+            for trait in trait_to_annotator[dim]:
+                if trait != "UNK":
+                    df_trait = self.ordered_pred[self.ordered_pred["user_id"].isin(trait_to_annotator[dim][trait])]
+                    self.trait_level_metrics[dim][trait] = classification_report(
+                                            df_trait["gold"], 
+                                            df_trait["predictions"], 
+                                            zero_division=0.0,
+                                            output_dict=True)
+                    
+                    for label in self.trait_level_metrics[dim][trait]:
+                        if not isinstance(self.trait_level_metrics[dim][trait][label], float):
+                            if not label in all_trait_level_metrics[dim]:
+                                all_trait_level_metrics[dim][label] = {}
+                            for metric in self.trait_level_metrics[dim][trait][label]:
+                                if not metric in all_trait_level_metrics[dim][label]:
+                                    all_trait_level_metrics[dim][label][metric] = [self.trait_level_metrics[dim][trait][label][metric]]
+                                else:
+                                    all_trait_level_metrics[dim][label][metric].append(self.trait_level_metrics[dim][trait][label][metric])
+                        else:
+                            if not label in all_trait_level_metrics[dim]:
+                                all_trait_level_metrics[dim][label] = [self.trait_level_metrics[dim][trait][label]]
+                            else:
+                                all_trait_level_metrics[dim][label].append(self.trait_level_metrics[dim][trait][label])
+
+        print("\nTrait-level macro averages")
+        self.trait_based_macro_avg = {}        
+        for dim in all_trait_level_metrics:
+            print("\n--- %s ---" % dim)
+            if not dim in self.trait_based_macro_avg:
+                self.trait_based_macro_avg[dim] = {}
+            for label in all_trait_level_metrics[dim]:
+                if not isinstance(all_trait_level_metrics[dim][label], list):
+                    if not label in self.trait_based_macro_avg[dim]:
+                        self.trait_based_macro_avg[dim][label] = {}
+                    for metric in all_trait_level_metrics[dim][label]:
+                        self.trait_based_macro_avg[dim][label] = np.mean(all_trait_level_metrics[dim][label][metric])
+                        print("%s, %s --- %.3f" % (label, metric, np.mean(all_trait_level_metrics[dim][label][metric])))
+                else:
+                    self.trait_based_macro_avg[dim][label] = np.mean(all_trait_level_metrics[dim][label])
+                    print("%s --- %.3f" % (label, np.mean(all_trait_level_metrics[dim][label])))
+
+                    

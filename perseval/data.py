@@ -17,15 +17,13 @@ log.basicConfig(
     encoding='utf-8', 
     level=log.INFO)
 
-# changing the random seed will change how the datasets are split into training and test set
+# Changing the random seed will change how the datasets are split
 seed(config.seed)
-
 
 @dataclass
 class PerspectivistDataset:
     def __init__(self):
         self.name = None
-        self.filename = None
         self.traits = {}
         self.labels = dict()
         self.training_set = None
@@ -35,42 +33,31 @@ class PerspectivistDataset:
         self.named = None
         self.strict = None
 
-    def save(self):            
-        log.info(f"Saving {self.name} to {self.filename}")
-        with open(self.filename, "wb") as fo:
-            pickle.dump((self.__dict__, self.training_set, self.test_set), fo)
-
-    def load(self):            
-        log.info(f"Loading {self.name} from file {self.filename}")
-        with open(self.filename, "rb") as f:
-            self.__dict__, self.training_set, self.test_set = pickle.load(f)
-
     def describe_splits(self):
         if not self.training_set.users:
-            raise Exception("You need to first choose a task through "+self.name+".get_splits(task_name, named, strict)")
+            raise Exception("You need to first choose a task through "+self.name+".get_splits(strict, user_adaptation, named)")
         
         print("--- Unique users ---")
         print("Train set: %d" % len(self.training_set.users))
         if len(self.adaptation_set.users):
-            print("adaptation set: %d" % len(self.adaptation_set.users))
+            print("Adaptation set: %d" % len(self.adaptation_set.users))
         print("Test set: %d" % len(self.test_set.users))
         print()
         print("--- Unique texts ---")
         print("Train set: %d" % len(self.training_set.annotation_by_text))
         if len(self.adaptation_set.annotation_by_text):
-            print("adaptation set: %d" % len(self.adaptation_set.annotation_by_text))
+            print("Adaptation set: %d" % len(self.adaptation_set.annotation_by_text))
         print("Test set: %d" % len(self.test_set.annotation_by_text))
         print()
         print("--- Instances (text + user) ---")
         print("Train set: %d" % len(self.training_set.annotation))
         if len(self.adaptation_set.annotation):
-            print("adaptation set: %d" % len(self.adaptation_set.annotation))
+            print("Adaptation set: %d" % len(self.adaptation_set.annotation))
         print("Test set: %d" % len(self.test_set.annotation))
         print()
 
         print("--- User-text train/adaptation/test distribution ---")
         number_user_adapt_texts, number_user_test_texts = [], []
-        
         for u in self.test_set.users:
             user_adapt_texts, user_test_texts = 0, 0
             for i in self.adaptation_set.annotation:
@@ -101,7 +88,7 @@ class PerspectivistDataset:
             # Train and adapt + test users have no overlap
             assert set(self.training_set.users).intersection(set(self.adaptation_set.users)) == set()
             assert set(self.training_set.users).intersection(set(self.test_set.users)) == set()
-        if user_adaptation == "train":# and not strict:
+        if user_adaptation == "train":
             # All test users are also in the training set
             assert set(self.training_set.users).union(set(self.test_set.users)) == set(self.training_set.users) 
         
@@ -155,7 +142,7 @@ class PerspectivistSplit:
         self.type = type # Str, e.g., train, adaptation, test
         self.users = dict() 
         self.texts = dict()
-        self.annotation = dict() #user, text, label (Instance + label)
+        self.annotation = dict() #user, text, label
         self.annotation_by_text = dict()
 
     def __iter__(self):
@@ -176,9 +163,6 @@ class User:
         self.id = user
         self.traits = dict()
 
-    def __repr__(self):
-        return "User: " + str(self.id)
-    
     def __lt__(self, other):
         return self.id < other.id
     
@@ -194,17 +178,22 @@ class Epic(PerspectivistDataset):
     def __init__(self):
         super(Epic, self).__init__()
         self.name = "EPIC"
-        self.filename = f"{self.name}{config.dataset_filename_suffix}"
-        if isfile(self.filename):
-            self.load()
-            return
         dataset = load_dataset("Multilingual-Perspectivist-NLU/EPIC")
         self.dataset = dataset["train"]
         self.dataset = self.dataset.map(lambda x: {"label": {"iro":1, "not":0}[x["label"]]})
         self.labels["irony"] = set()
 
     def get_splits(self, strict, user_adaptation, named):
+        if not user_adaptation in [False, "train", "test"]:
+            raise Exception(
+                "Possible values are:\n \
+                - False (bool): No adaptation is performed. The train and test splits are completly disjoint. The adaptation split is empty.\n \
+                - 'train' (str): A small percentage (defined in the config) of the annotations by test users is contained in the training split. The adaptation split is empty. This mirrors a situation in which one can obtain a minimal amount of annotationd *before* training the system.\n \
+                - 'test' (str): A small percentage (defined in the config) of the annotations by the test user is in the adapatation split. This mirrors a situation in which one has a trained system (trained on the training users, with no annotations from the test users) and want to adapt the system *after* training it.\n"
+                )
+
         log.info("Generationg Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
+
         
         self.user_adaptation = user_adaptation
         self.named = named
@@ -320,8 +309,6 @@ class Epic(PerspectivistDataset):
             self.training_set = train_split
             self.adaptation_set = adaptation_split
             self.test_set = test_split
-        else:
-            raise Exception("Possible values are False, train and test")
 
         if strict:
             strict_train_split = self.training_set
@@ -360,10 +347,6 @@ class Brexit(PerspectivistDataset):
     def __init__(self):
         super(Brexit, self).__init__()
         self.name = "BREXIT"
-        self.filename = f"{self.name}{config.dataset_filename_suffix}"
-        if isfile(self.filename):
-            self.load()
-            return
         dataset = load_dataset("silvia-casola/BREXIT")
         self.dataset = concatenate_datasets([dataset["train"], dataset["validation"], dataset["test"]])
         labels = ["hs", "offensiveness", "aggressiveness", "stereotype"]
@@ -371,7 +354,15 @@ class Brexit(PerspectivistDataset):
             self.labels[label] = set()
 
     def get_splits(self, strict, user_adaptation, named):
-        log.info("Generationg Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
+        if not user_adaptation in [False, "train", "test"]:
+            raise Exception(
+                "Possible values are:\n \
+                - False (bool): No adaptation is performed. The train and test splits are completly disjoint. The adaptation split is empty.\n \
+                - 'train' (str): A small percentage (defined in the config) of the annotations by test users is contained in the training split. The adaptation split is empty. This mirrors a situation in which one can obtain a minimal amount of annotationd *before* training the system.\n \
+                - 'test' (str): A small percentage (defined in the config) of the annotations by the test user is in the adapatation split. This mirrors a situation in which one has a trained system (trained on the training users, with no annotations from the test users) and want to adapt the system *after* training it.\n"
+                )
+
+        log.info("Generating. Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
         self.training_set = self.adaptation_set = self.test_set = None
 
         if not user_adaptation and not named:
@@ -441,7 +432,6 @@ class Brexit(PerspectivistDataset):
                     for label in self.labels:
                         self.labels[label].add(row[label])
                 
-        
         if user_adaptation == False:
             # You know nothing about the new test users except their explicit traits
             # You cannot use their adaptation annotations
@@ -477,10 +467,6 @@ class Brexit(PerspectivistDataset):
             self.training_set = train_split
             self.adaptation_set = adaptation_split
             self.test_set = test_split
-                
-        else:
-            raise Exception("TODO: explain the possibilities")
-
         
         if strict:
             strict_train_split = self.training_set
@@ -493,7 +479,6 @@ class Brexit(PerspectivistDataset):
             # Filter texts
             strict_train_split.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
             self.training_set = strict_train_split
-
 
         self.check_splits(user_adaptation, strict, named)
         self.describe_splits()
