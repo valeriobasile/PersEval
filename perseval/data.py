@@ -361,6 +361,10 @@ class Brexit(PerspectivistDataset):
                 - 'train' (str): A small percentage (defined in the config) of the annotations by test users is contained in the training split. The adaptation split is empty. This mirrors a situation in which one can obtain a minimal amount of annotationd *before* training the system.\n \
                 - 'test' (str): A small percentage (defined in the config) of the annotations by the test user is in the adapatation split. This mirrors a situation in which one has a trained system (trained on the training users, with no annotations from the test users) and want to adapt the system *after* training it.\n"
                 )
+        
+        self.user_adaptation = user_adaptation
+        self.named = named
+        self.strict = strict
 
         log.info("Generating. Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
         self.training_set = self.adaptation_set = self.test_set = None
