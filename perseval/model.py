@@ -23,7 +23,7 @@ class PerspectivistEncoder():
         self.traits = persp_dataset.traits
         self.named = persp_dataset.named
         self.user_adaptation = persp_dataset.user_adaptation
-        self.strict = persp_dataset.strict
+        self.extended = persp_dataset.extended
         self.dataset = persp_dataset.name 
     
         self.tokenizer = AutoTokenizer.from_pretrained(model_identifier)
@@ -41,8 +41,7 @@ class PerspectivistEncoder():
                 classes=np.unique(data["train"]["labels"].float().numpy()),
                 y=data["train"]["labels"].float().numpy()).astype("float32")
         except Exception as e:
-            print(e)
-            print("unable to balance classes")
+            print("Unable to balance classes")
             class_weights = np.array([1, 1]).astype("float32")
 
 
@@ -75,7 +74,7 @@ class PerspectivistEncoder():
         predictions = trainer.predict(test_data)
         if not os.path.exists(config.prediction_dir): 
             os.makedirs(config.prediction_dir)  
-        with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.strict), "w") as fo:
+        with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended), "w") as fo:
             writer = csv.DictWriter(
                 fo,
                 fieldnames=[
@@ -142,7 +141,7 @@ class PerspectivistEncoder():
 
 
 class CustomTrainer(Trainer):
-    """ Custom Trainer class to implement a custom looss function
+    """ Custom Trainer class to implement a custom loss function
     """
 
     def set_class_weights(self, class_weights):

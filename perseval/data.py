@@ -1,6 +1,4 @@
-import pickle
 import logging as log
-from os.path import isfile
 from random import seed, sample
 from dataclasses import dataclass  
 import copy                                             
@@ -31,11 +29,11 @@ class PerspectivistDataset:
         self.test_set = None
         self.user_adaptation = None
         self.named = None
-        self.strict = None
+        self.extended = None
 
     def describe_splits(self):
         if not self.training_set.users:
-            raise Exception("You need to first choose a task through "+self.name+".get_splits(strict, user_adaptation, named)")
+            raise Exception("You need to first choose a task through "+self.name+".get_splits(extended, user_adaptation, named)")
         
         print("--- Unique users ---")
         print("Train set: %d" % len(self.training_set.users))
@@ -78,7 +76,7 @@ class PerspectivistDataset:
             print("The max percentage of texts per users in the adaptation set is %.3f (i.e. %.0f instances)" % (np.max(percentage_in_adapt), np.max(number_user_adapt_texts)))
 
 
-    def check_splits(self, user_adaptation, strict, named):
+    def check_splits(self, user_adaptation, extended, named):
         if user_adaptation == False:
             # The adaptation set is empty
             assert self.adaptation_set == PerspectivistSplit(type="adaptation")
@@ -109,7 +107,7 @@ class PerspectivistDataset:
                 if i[0]==u:
                     user_test_texts+=1
             
-        if user_adaptation == "train" and not strict:
+        if user_adaptation == "train" and extended:
             # All test users and corresponding training users must have at least one annotation
             assert user_train_texts != 0
             assert user_test_texts != 0
@@ -118,8 +116,8 @@ class PerspectivistDataset:
             assert user_adapt_texts != 0
             assert user_test_texts != 0
 
-        if strict:
-            # Strict train and test text have no overlap
+        if not extended:
+            # Train and test text have no overlap
             assert set(self.training_set.texts).intersection(set(self.test_set.texts)) == set()  
         log.info("All tests passed")
 
@@ -183,7 +181,7 @@ class Epic(PerspectivistDataset):
         self.dataset = self.dataset.map(lambda x: {"label": {"iro":1, "not":0}[x["label"]]})
         self.labels["irony"] = set()
 
-    def get_splits(self, strict, user_adaptation, named):
+    def get_splits(self, extended, user_adaptation, named):
         if not user_adaptation in [False, "train", "test"]:
             raise Exception(
                 "Possible values are:\n \
@@ -192,12 +190,12 @@ class Epic(PerspectivistDataset):
                 - 'test' (str): A small percentage (defined in the config) of the annotations by the test user is in the adapatation split. This mirrors a situation in which one has a trained system (trained on the training users, with no annotations from the test users) and want to adapt the system *after* training it.\n"
                 )
 
-        log.info("Generationg Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
+        log.info("Generationg Named: %s, User adaptation: %s, Extended: %s" % (named, user_adaptation, extended))
 
         
         self.user_adaptation = user_adaptation
         self.named = named
-        self.strict = strict
+        self.extended = extended
 
         self.training_set = self.adaptation_set = self.test_set = None
 
@@ -310,7 +308,7 @@ class Epic(PerspectivistDataset):
             self.adaptation_set = adaptation_split
             self.test_set = test_split
 
-        if strict:
+        if not extended:
             strict_train_split = self.training_set
             strict_train_split.annotation_by_text = {t:self.training_set.annotation_by_text[t] for t in self.training_set.annotation_by_text if t not in self.test_set.annotation_by_text}
             # Filter annotations
@@ -322,7 +320,7 @@ class Epic(PerspectivistDataset):
             strict_train_split.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
             self.training_set = strict_train_split
 
-        self.check_splits(user_adaptation, strict, named)
+        self.check_splits(user_adaptation, extended, named)
         self.describe_splits()
         
 
@@ -353,7 +351,7 @@ class Brexit(PerspectivistDataset):
         for label in labels:
             self.labels[label] = set()
 
-    def get_splits(self, strict, user_adaptation, named):
+    def get_splits(self, extended, user_adaptation, named):
         if not user_adaptation in [False, "train", "test"]:
             raise Exception(
                 "Possible values are:\n \
@@ -364,9 +362,9 @@ class Brexit(PerspectivistDataset):
         
         self.user_adaptation = user_adaptation
         self.named = named
-        self.strict = strict
+        self.extended = extended
 
-        log.info("Generating. Named: %s, User adaptation: %s, Strict: %s" % (named, user_adaptation, strict))
+        log.info("Generating. Named: %s, User adaptation: %s, Extended: %s" % (named, user_adaptation, extended))
         self.training_set = self.adaptation_set = self.test_set = None
 
         if not user_adaptation and not named:
@@ -472,7 +470,7 @@ class Brexit(PerspectivistDataset):
             self.adaptation_set = adaptation_split
             self.test_set = test_split
         
-        if strict:
+        if not extended:
             strict_train_split = self.training_set
             strict_train_split.annotation_by_text = {t:self.training_set.annotation_by_text[t] for t in self.training_set.annotation_by_text if t not in self.test_set.annotation_by_text}
             # Filter annotations
@@ -484,5 +482,5 @@ class Brexit(PerspectivistDataset):
             strict_train_split.texts = {k:self.training_set.texts[k] for k in self.training_set.texts if not k in self.test_set.texts}
             self.training_set = strict_train_split
 
-        self.check_splits(user_adaptation, strict, named)
+        self.check_splits(user_adaptation, extended, named)
         self.describe_splits()
