@@ -7,16 +7,16 @@ logging.set_verbosity_error()
 perspectivist_dataset = Epic()
 perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
 
-'''
+
 model = PerspectivistEncoder("roberta-base", 
                             perspectivist_dataset, 
-                            label="hs")
+                            label="irony")
 
 trainer = model.train()
 model.predict(trainer) # <-- Predictions are saved in the "predictions" folder, 
                        #     The file must contain three columns:
                        #     "user_id", "text_id", "label"
-'''
+
 
 evaluator = Evaluator(prediction_path="predictions/predictions_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended),
                       test_set=perspectivist_dataset.test_set,
