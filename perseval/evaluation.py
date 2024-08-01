@@ -30,7 +30,7 @@ class Evaluator():
 
     def global_metrics(self):
         print("\n----- Global metrics -----")
-        self.global_metrics = classification_report(
+        self.global_metrics_dic = classification_report(
             self.ordered_pred["gold"], 
             self.ordered_pred["predictions"], 
             zero_division=0.0,
@@ -44,30 +44,30 @@ class Evaluator():
 
     def annotator_level_metrics(self):
         print("\n----- Annotator-level metrics -----")
-        self.annotator_level_metrics = {}
+        self.annotator_level_metrics_dic = {}
         all_annotator_level_metrics = {}
         for annotator in list(set(self.ordered_pred["user_id"])):
             df_annotator = self.ordered_pred[self.ordered_pred["user_id"]==annotator]
-            self.annotator_level_metrics[annotator] = classification_report(
+            self.annotator_level_metrics_dic[annotator] = classification_report(
                                         df_annotator["gold"], 
                                         df_annotator["predictions"], 
                                         zero_division=0.0,
                                         output_dict=True)
             
-            for label in self.annotator_level_metrics[annotator]:
-                if not isinstance(self.annotator_level_metrics[annotator][label], float):
+            for label in self.annotator_level_metrics_dic[annotator]:
+                if not isinstance(self.annotator_level_metrics_dic[annotator][label], float):
                     if not label in all_annotator_level_metrics:
                         all_annotator_level_metrics[label] = {}
-                    for metric in self.annotator_level_metrics[annotator][label]:
+                    for metric in self.annotator_level_metrics_dic[annotator][label]:
                         if not metric in all_annotator_level_metrics[label]:
-                            all_annotator_level_metrics[label][metric] = [self.annotator_level_metrics[annotator][label][metric]]
+                            all_annotator_level_metrics[label][metric] = [self.annotator_level_metrics_dic[annotator][label][metric]]
                         else:
-                            all_annotator_level_metrics[label][metric].append(self.annotator_level_metrics[annotator][label][metric])
+                            all_annotator_level_metrics[label][metric].append(self.annotator_level_metrics_dic[annotator][label][metric])
                 else:
                     if not label in all_annotator_level_metrics:
-                        all_annotator_level_metrics[label] = [self.annotator_level_metrics[annotator][label]]
+                        all_annotator_level_metrics[label] = [self.annotator_level_metrics_dic[annotator][label]]
                     else:
-                        all_annotator_level_metrics[label].append(self.annotator_level_metrics[annotator][label])
+                        all_annotator_level_metrics[label].append(self.annotator_level_metrics_dic[annotator][label])
         
         print("\nAnnotator-level macro average")
         self.annotator_based_macro_avg = {}        
@@ -85,30 +85,30 @@ class Evaluator():
 
     def text_level_metrics(self):
         print("\n----- Text-level metrics -----")
-        self.text_level_metrics = {}
+        self.text_level_metrics_dic = {}
         all_text_level_metrics = {}
         for text in list(set(self.ordered_pred["text_id"])):
             df_text = self.ordered_pred[self.ordered_pred["text_id"]==text]
-            self.text_level_metrics[text] = classification_report(
+            self.text_level_metrics_dic[text] = classification_report(
                                         df_text["gold"], 
                                         df_text["predictions"], 
                                         zero_division=0.0,
                                         output_dict=True)
             
-            for label in self.text_level_metrics[text]:
-                if not isinstance(self.text_level_metrics[text][label], float):
+            for label in self.text_level_metrics_dic[text]:
+                if not isinstance(self.text_level_metrics_dic[text][label], float):
                     if not label in all_text_level_metrics:
                         all_text_level_metrics[label] = {}
-                    for metric in self.text_level_metrics[text][label]:
+                    for metric in self.text_level_metrics_dic[text][label]:
                         if not metric in all_text_level_metrics[label]:
-                            all_text_level_metrics[label][metric] = [self.text_level_metrics[text][label][metric]]
+                            all_text_level_metrics[label][metric] = [self.text_level_metrics_dic[text][label][metric]]
                         else:
-                            all_text_level_metrics[label][metric].append(self.text_level_metrics[text][label][metric])
+                            all_text_level_metrics[label][metric].append(self.text_level_metrics_dic[text][label][metric])
                 else:
                     if not label in all_text_level_metrics:
-                        all_text_level_metrics[label] = [self.text_level_metrics[text][label]]
+                        all_text_level_metrics[label] = [self.text_level_metrics_dic[text][label]]
                     else:
-                        all_text_level_metrics[label].append(self.text_level_metrics[text][label])
+                        all_text_level_metrics[label].append(self.text_level_metrics_dic[text][label])
         
         print("\nText-level macro average")
         self.text_based_macro_avg = {}        
@@ -126,7 +126,7 @@ class Evaluator():
     
     def trait_level_metrics(self):
         print("\n----- Trait-level metrics -----")        
-        self.trait_level_metrics = {}
+        self.trait_level_metrics_dic = {}
         all_trait_level_metrics = {}
 
         trait_to_annotator = {}
@@ -145,34 +145,34 @@ class Evaluator():
         
         
         for dim in trait_to_annotator:
-            if dim not in self.trait_level_metrics:
-                self.trait_level_metrics[dim] = {} 
+            if dim not in self.trait_level_metrics_dic:
+                self.trait_level_metrics_dic[dim] = {} 
             if dim not in all_trait_level_metrics:
                 all_trait_level_metrics[dim] = {}
 
             for trait in trait_to_annotator[dim]:
                 if trait != "UNK":
                     df_trait = self.ordered_pred[self.ordered_pred["user_id"].isin(trait_to_annotator[dim][trait])]
-                    self.trait_level_metrics[dim][trait] = classification_report(
+                    self.trait_level_metrics_dic[dim][trait] = classification_report(
                                             df_trait["gold"], 
                                             df_trait["predictions"], 
                                             zero_division=0.0,
                                             output_dict=True)
                     
-                    for label in self.trait_level_metrics[dim][trait]:
-                        if not isinstance(self.trait_level_metrics[dim][trait][label], float):
+                    for label in self.trait_level_metrics_dic[dim][trait]:
+                        if not isinstance(self.trait_level_metrics_dic[dim][trait][label], float):
                             if not label in all_trait_level_metrics[dim]:
                                 all_trait_level_metrics[dim][label] = {}
-                            for metric in self.trait_level_metrics[dim][trait][label]:
+                            for metric in self.trait_level_metrics_dic[dim][trait][label]:
                                 if not metric in all_trait_level_metrics[dim][label]:
-                                    all_trait_level_metrics[dim][label][metric] = [self.trait_level_metrics[dim][trait][label][metric]]
+                                    all_trait_level_metrics[dim][label][metric] = [self.trait_level_metrics_dic[dim][trait][label][metric]]
                                 else:
-                                    all_trait_level_metrics[dim][label][metric].append(self.trait_level_metrics[dim][trait][label][metric])
+                                    all_trait_level_metrics[dim][label][metric].append(self.trait_level_metrics_dic[dim][trait][label][metric])
                         else:
                             if not label in all_trait_level_metrics[dim]:
-                                all_trait_level_metrics[dim][label] = [self.trait_level_metrics[dim][trait][label]]
+                                all_trait_level_metrics[dim][label] = [self.trait_level_metrics_dic[dim][trait][label]]
                             else:
-                                all_trait_level_metrics[dim][label].append(self.trait_level_metrics[dim][trait][label])
+                                all_trait_level_metrics[dim][label].append(self.trait_level_metrics_dic[dim][trait][label])
 
         print("\nTrait-level macro averages")
         self.trait_based_macro_avg = {}        
