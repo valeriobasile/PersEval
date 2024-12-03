@@ -5,7 +5,7 @@ import copy
 
 from tqdm import tqdm
 import numpy as np
-from datasets import load_dataset, concatenate_datasets
+from datasets import load_dataset, concatenate_datasets, load_from_disk
 from sklearn.model_selection import train_test_split
 
 from . import config
@@ -190,7 +190,7 @@ class Epic(PerspectivistDataset):
                 - 'test' (str): A small percentage (defined in the config) of the annotations by the test user is in the adapatation split. This mirrors a situation in which one has a trained system (trained on the training users, with no annotations from the test users) and want to adapt the system *after* training it.\n"
                 )
 
-        log.info("Generationg Named: %s, User adaptation: %s, Extended: %s" % (named, user_adaptation, extended))
+        log.info("Generating Named: %s, User adaptation: %s, Extended: %s" % (named, user_adaptation, extended))
 
         
         self.user_adaptation = user_adaptation
@@ -484,3 +484,23 @@ class Brexit(PerspectivistDataset):
 
         self.check_splits(user_adaptation, extended, named)
         self.describe_splits()
+
+
+@dataclass
+class DICES(PerspectivistDataset):
+    def __init__(self):
+        super(DICES, self).__init__()
+        self.name = "DICES_350"
+        self.dataset = load_from_disk("data/diverse_safety_adversarial_dialog_350")
+        print(self.dataset.shape)
+        print(len(self.dataset))
+        print(self.dataset.column_names)
+        print(set(self.dataset["rater_age"]))
+        print(set(self.dataset["degree_of_harm"]))
+        print(set(self.dataset["rater_gender"]))
+        print(set(self.dataset["rater_education"]))
+        print(set(self.dataset["rater_race"]))
+        
+        labels = ["Benign", "Debatable", "Extreme", "Moderate"]
+        for label in labels:
+            self.labels[label] = set()

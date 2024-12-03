@@ -4,7 +4,7 @@ from perseval.evaluation import *
 from transformers.utils import logging
 logging.set_verbosity_error() 
 
-perspectivist_dataset = Epic()
+perspectivist_dataset = DICE()
 perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
 
 
