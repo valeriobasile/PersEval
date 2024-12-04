@@ -4,13 +4,16 @@ from perseval.evaluation import *
 from transformers.utils import logging
 logging.set_verbosity_error() 
 
-perspectivist_dataset = DICE()
+perspectivist_dataset = DICES()
 perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
 
-
+# options for label:
+# EPIC   -> ["irony"]
+# BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
+# DICES  -> ["degree_of_harm"]
 model = PerspectivistEncoder("roberta-base", 
                             perspectivist_dataset, 
-                            label="irony")
+                            label="degree_of_harm")
 
 trainer = model.train()
 model.predict(trainer) # <-- Predictions are saved in the "predictions" folder, 

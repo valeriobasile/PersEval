@@ -5,7 +5,10 @@ dataset_specific_splits = {
         "user_based_split_percentage" : 0.2,
         "text_based_split_percentage" : 0.05,
     },
-
+    "DICES-350": {
+        "user_based_split_percentage" : 0.2,
+        "text_based_split_percentage" : 0.05,
+    },
     "BREXIT": {
         "user_based_split_percentage" : 0.2,
         "text_based_split_percentage_train" : 0.7,
