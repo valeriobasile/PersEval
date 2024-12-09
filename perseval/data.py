@@ -493,32 +493,8 @@ class DICES(PerspectivistDataset):
         self.name = "DICES-350"
         self.dataset = load_from_disk("data/diverse_safety_adversarial_dialog_350_enhanced")
         self.dataset = self.dataset.map(lambda x: {"degree_of_harm": {"Extreme":3, "Moderate":2, "Debatable":1, "Benign":0}[x["degree_of_harm"]]})
-        print(self.dataset.shape)
-        print(len(self.dataset))
-        print(self.dataset.column_names)
-
-        print(np.unique(self.dataset["rater_age"], return_counts=True))
-        print(np.unique(self.dataset["degree_of_harm"], return_counts=True))
-        print(np.unique(self.dataset["rater_gender"], return_counts=True))
-        print(np.unique(self.dataset["rater_education"], return_counts=True))
-        print(np.unique(self.dataset["rater_race"], return_counts=True))
-
-        print(self.dataset[0])
-        
         self.labels["degree_of_harm"] = set()
-        '''
-        import hashlib
-        new_column = []
-        for sample in self.dataset:
-            new_column.append(hashlib.sha256((sample["context"]+sample["response"]).encode()).hexdigest()[:12])
-            #print(sample["text_id"])
-        self.dataset = self.dataset.add_column("text_id", new_column)
-        print(self.dataset[0])
-        for i in range(80,110):
-            print(self.dataset["text_id"][i])
-            print(self.dataset["response"][i])
-        self.dataset.save_to_disk("data/diverse_safety_adversarial_dialog_350_enhanced")
-        '''
+
 
     def get_splits(self, extended, user_adaptation, named):
         if not user_adaptation in [False, "train", "test"]:
@@ -552,14 +528,7 @@ class DICES(PerspectivistDataset):
         seed(config.seed)
         adaptation_text_ids = sample(sorted(adapt_test_text_id), int(len(adapt_test_text_id) * config.dataset_specific_splits[self.name]["text_based_split_percentage"]))
         test_text_ids = [t_id for t_id in adapt_test_text_id if t_id not in adaptation_text_ids]
-        print("-----")
-        print(len(adaptation_test_user_ids))
-        print(len(train_user_ids))
-        print(len(adapt_test_text_id))
-        print(len(adaptation_text_ids))
-        print(len(test_text_ids))
         
-
         train_split , adaptation_split, test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="adaptation"), PerspectivistSplit(type="test")
         splits = [train_split, adaptation_split, test_split]
         for split in splits:

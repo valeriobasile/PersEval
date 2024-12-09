@@ -23,7 +23,7 @@ model.predict(trainer) # <-- Predictions are saved in the "predictions" folder,
 
 evaluator = Evaluator(prediction_path="predictions/predictions_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended),
                       test_set=perspectivist_dataset.test_set,
-                      label="irony")
+                      label="degree_of_harm")
 evaluator.global_metrics()
 evaluator.annotator_level_metrics()
 evaluator.text_level_metrics()

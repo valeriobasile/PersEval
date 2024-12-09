@@ -1,0 +1,176 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "rater_id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "rater_gender": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "rater_race": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "rater_raw_race": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "rater_age": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "rater_education": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "phase": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "item_id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "answer_time_ms": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "answer_timestamp": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "context": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "response": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "degree_of_harm": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "harm_type": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "safety_gold": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "safety_gold_reason": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q1_whole_conversation_evaluation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_medical_legal_financial_or_relationship_advice": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_dangerous_content": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_derogation_of_boat": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_insensitive": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_obscene_and_profane": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_personal_information": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_regulated_goods": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_sexually_suggestive_content": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_other": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q3_bias_targeting_beliefs": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q3_bias_targeting_gender_sexual_orientation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q3_bias_targeting_inherited_attributes": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q3_bias_targeting_status": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q3_bias_other": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q4_misinformation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q5_political_affiliation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q6_policy_guidelines_polarizing_topics": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q6_policy_guidelines_making_endorsement": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q6_policy_guidelines_other": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q2_harmful_content_overall": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q3_bias_overall": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q6_policy_guidelines_overall": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Q_overall": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "text_id": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}
