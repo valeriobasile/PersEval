@@ -11,6 +11,11 @@ dataset_specific_splits = {
         "text_based_split_percentage_train" : 0.7,
         "text_based_split_percentage_dev" : 0.05,
     },
+
+    "MHS": {
+        "user_based_split_percentage" : 0.2,
+        "text_based_split_percentage" : 0.05,
+    }
 }
 
 model_config = {
@@ -18,8 +23,8 @@ model_config = {
         "output_dir": "./results",
         "num_train_epochs": 5, 
         "learning_rate": 5e-6,
-        "per_device_train_batch_size": 32,
-        "per_device_eval_batch_size": 32, 
+        "per_device_train_batch_size": 16,
+        "per_device_eval_batch_size": 16, 
         "evaluation_strategy": "epoch",
         "save_strategy": "epoch",
         "logging_strategy": "epoch",
