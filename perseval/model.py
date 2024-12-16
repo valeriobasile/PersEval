@@ -27,7 +27,7 @@ class PerspectivistEncoder():
         self.dataset = persp_dataset.name 
     
         self.tokenizer = AutoTokenizer.from_pretrained(model_identifier)
-        if persp_dataset.name == "DICES-350":
+        if self.dataset == "DICES-350":
             self.model = AutoModelForSequenceClassification.from_pretrained(model_identifier, num_labels=4)
         else:
             self.model = AutoModelForSequenceClassification.from_pretrained(model_identifier, num_labels=2)
