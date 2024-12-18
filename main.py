@@ -15,7 +15,7 @@ tokenizer = AutoTokenizer.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1"
 prompt = "<s> [INST] hello. how are you? [/INST]"
 model_inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
 
-generated_ids = model.generate(**model_inputs, max_new_tokens=100, do_sample=True)
+generated_ids = model.generate(**model_inputs, max_new_tokens=100, do_sample=False)
 output = tokenizer.batch_decode(generated_ids)[0]
 print(output)
 exit()
@@ -92,10 +92,9 @@ def main():
 
     # create the model
     if args.use_llm:
-        pass
-        #model = PerspectiveLLM(args.model_name, 
-                                #perspectivist_dataset, 
-                                #label=args.label)
+        model = PerspectivistLLM(args.model_name, 
+                                perspectivist_dataset, 
+                                label=args.label)
     else:
         model = PerspectivistEncoder(args.model_name, 
                                 perspectivist_dataset, 
@@ -106,34 +105,12 @@ def main():
         trainer = model.train()
         model.predict(trainer)  # <-- Predictions are saved in the "predictions" folder, 
     else:                       #     The file must contain three columns:
-        #model.predict()         #     "user_id", "text_id", "label"
-        pass
+        model.predict()         #     "user_id", "text_id", "label"
 
-        from transformers import pipeline
-        import torch
 
-        model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-        pipe = pipeline(
-            "text-generation",
-            model=model_id,
-            model_kwargs={"torch_dtype": torch.bfloat16},
-            device="cuda",
-        )
-
-        messages = [
-            {"role": "user", "content": "Hello. How are you? reply within brackets like this {}"},
-        ]
-        outputs = pipe(
-            messages,
-            max_new_tokens=256,
-            do_sample=False,
-        )
-        assistant_response = outputs[0]["generated_text"][-1]["content"]
-        print(outputs)
-        exit()
     evaluator = Evaluator(prediction_path="predictions/predictions_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended),
                         test_set=perspectivist_dataset.test_set,
-                        label="degree_of_harm")
+                        label=args.label)
     evaluator.global_metrics()
     evaluator.annotator_level_metrics()
     evaluator.text_level_metrics()

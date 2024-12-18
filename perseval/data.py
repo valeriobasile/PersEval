@@ -490,7 +490,7 @@ class Brexit(PerspectivistDataset):
 class DICES(PerspectivistDataset):
     def __init__(self):
         super(DICES, self).__init__()
-        self.name = "DICES-350"
+        self.name = "DICES"
         self.dataset = load_from_disk("data/diverse_safety_adversarial_dialog_350_enhanced")
         self.dataset = self.dataset.map(lambda x: {"degree_of_harm": {"Extreme":3, "Moderate":2, "Debatable":1, "Benign":0}[x["degree_of_harm"]]})
         self.labels["degree_of_harm"] = set()

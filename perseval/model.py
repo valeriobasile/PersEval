@@ -4,12 +4,13 @@ import os
 
 import pandas as pd
 import csv
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, \
-    Trainer, set_seed, TrainingArguments 
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModelForCausalLM, \
+    Trainer, set_seed, TrainingArguments, pipeline
 from datasets import Dataset
 import torch
 from sklearn.utils import compute_class_weight
 import numpy as np
+from tqdm import tqdm
 
 from . import config
 
@@ -166,3 +167,104 @@ class CustomTrainer(Trainer):
         pt = torch.exp(-BCEloss)  # prevents nans when probability
         loss = alpha * (1 - pt) ** gamma * BCEloss
         return (loss, outputs) if return_outputs else loss
+
+
+class PerspectivistLLM():
+    def __init__(self, model_identifier, persp_dataset, label):
+        self.model_id = model_identifier
+        self.training_split = persp_dataset.training_set
+        self.adaptation_split = persp_dataset.adaptation_set        
+        self.test_split = persp_dataset.test_set
+        self.label = label
+        self.traits = persp_dataset.traits
+        self.named = persp_dataset.named
+        self.user_adaptation = persp_dataset.user_adaptation
+        self.extended = persp_dataset.extended
+        self.dataset = persp_dataset.name 
+    
+        if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
+            self.mixtral = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="auto")
+            self.mixtral_tokenizer = AutoTokenizer.from_pretrained(self.model_id)
+        elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
+            self.llama = pipeline(
+                "text-generation",
+                model=self.model_id,
+                model_kwargs={"torch_dtype": torch.bfloat16},
+                device="cuda")
+
+    def predict(self):
+        #count=0
+        with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended), "w") as fo:
+            writer = csv.DictWriter(
+                fo,
+                fieldnames=[
+                    "user_id",
+                    "text_id",
+                    "label"])
+            writer.writeheader()
+
+            for sample in tqdm(self.test_split):
+                text_id = sample.instance_id
+                user_id = sample.user.id
+                traits = sample.user.traits
+                label = sample.label
+                text = sample.instance_text
+                #count += 1
+                #if count%10 != 0:
+                    #continue
+                #print(sample.instance_id)
+                #print(sample.instance_text)
+                #print(sample.user.id)
+                #print(sample.user.traits)
+                #print(sample.label)
+
+                prompt = self.create_prompt(text, traits)
+
+                if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
+                    #prepare
+                    prompt = f"<s> [INST] {prompt} [/INST]"
+                    model_inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
+                    #infer
+                    generated_ids = model.generate(**model_inputs, max_new_tokens=100, do_sample=False)
+                    llm_response = tokenizer.batch_decode(generated_ids)[0]
+                elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
+                    #prepare
+                    messages = [{"role": "user", "content": prompt}]
+                    #infer
+                    outputs = self.llama(messages, max_new_tokens=100, do_sample=False)
+                    llm_response = outputs[0]["generated_text"][-1]["content"]
+
+                #print(llm_response)
+                #if count == 40:
+                    #exit()
+
+                # TODO add parsing operation here for the predictions
+                
+                writer.writerow({
+                    "user_id": user_id,
+                    "text_id": text_id,
+                    "label": llm_response
+                })
+
+
+
+
+
+
+    def create_prompt(self, text, traits):
+        prompt_options = config.prompts[self.dataset]
+      
+        prompt = f"{prompt_options['prelude']} {prompt_options['task']} {prompt_options['instr_pre']}" 
+        
+        pred_option_count = len(prompt_options["pred_opt"])
+        for i in range(pred_option_count-1): 
+            prompt = prompt + f" {prompt_options['pred_opt'][i]},"
+
+        prompt = prompt + f" or {prompt_options['pred_opt'][-1]} {prompt_options['instr_post']}\n"
+
+        for key, value in text.items():
+            prompt = prompt + f"{key}:\n {value}\n"
+        #print(prompt)
+
+        return prompt
+        #return "Hello. How are you? reply with ascii art"
