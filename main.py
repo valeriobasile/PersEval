@@ -4,14 +4,24 @@ from perseval.evaluation import *
 from transformers.utils import logging
 logging.set_verbosity_error() 
 
-perspectivist_dataset = DICES()
+perspectivist_dataset = MD()
+perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=False)
+print()
+perspectivist_dataset.get_splits(user_adaptation="train", extended=True, named=False)
+print()
+perspectivist_dataset.get_splits(user_adaptation="test", extended=False, named=False)
+print()
+perspectivist_dataset.get_splits(user_adaptation="test", extended=True, named=False)
+print()
 perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
 
 # options for label:
 # EPIC   -> ["irony"]
 # BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
 # DICES  -> ["degree_of_harm"]
-model = PerspectivistEncoder("roberta-base", 
+# MD -> ["offensiveness"]
+
+'''model = PerspectivistEncoder("roberta-base", 
                             perspectivist_dataset, 
                             label="degree_of_harm")
 
@@ -27,7 +37,7 @@ evaluator = Evaluator(prediction_path="predictions/predictions_%s_%s_%s_%s.csv" 
 evaluator.global_metrics()
 evaluator.annotator_level_metrics()
 evaluator.text_level_metrics()
-evaluator.trait_level_metrics()
+evaluator.trait_level_metrics()'''
 
 # You can also access the metrics from
 #print(evaluator.global_metrics_dic)
