@@ -222,11 +222,11 @@ class PerspectivistLLM():
 
                 if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
                     #prepare
-                    prompt = f"<s> [INST] {prompt} [/INST]"
-                    model_inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
+                    messages = [{"role": "user", "content": prompt}]
+                    model_inputs = self.mixtral_tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
                     #infer
-                    generated_ids = model.generate(**model_inputs, max_new_tokens=100, do_sample=False)
-                    llm_response = tokenizer.batch_decode(generated_ids)[0]
+                    generated_ids = self.mixtral.generate(model_inputs, max_new_tokens=100, do_sample=False)
+                    llm_response = self.mixtral_tokenizer.batch_decode(generated_ids)[0]
                 elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
                     #prepare
                     messages = [{"role": "user", "content": prompt}]
@@ -234,22 +234,20 @@ class PerspectivistLLM():
                     outputs = self.llama(messages, max_new_tokens=100, do_sample=False)
                     llm_response = outputs[0]["generated_text"][-1]["content"]
 
-                print(llm_response)
+                print(f"\n\nllm_response: {llm_response}")
                 #exit()
                 if count == 40:
                     exit()
 
                 # TODO add parsing operation here for the predictions
+                prediction = self.parse_output(llm_response)
+                print(f"pred: {prediction}\n\n")
                 
                 writer.writerow({
                     "user_id": user_id,
                     "text_id": text_id,
                     "label": llm_response
                 })
-
-
-
-
 
 
     def create_prompt(self, text, traits):
@@ -262,7 +260,7 @@ class PerspectivistLLM():
         pred_option_count = len(prompt_options["pred_opt"])
         for i in range(pred_option_count-1): 
             prompt = prompt + f" {prompt_options['pred_opt'][i]},"
-        prompt = prompt + f"{prompt_options['pred_opt'][-1]} {prompt_options['instr_post']}.\n"
+        prompt = prompt + f" {prompt_options['pred_opt'][-1]} {prompt_options['instr_post']}.\n"
 
         #add the context part
         prompt = prompt + f"{prompt_options['context_pre']}\n"
@@ -272,4 +270,19 @@ class PerspectivistLLM():
 
         print(prompt)
         return prompt
-        #return "Hello. How are you? reply with ascii art"
+
+    
+    def parse_output(self, llm_response):
+        #TODO get this to the config and build a better automation (also change the classes in data.py)
+        pred_labels = {"Yes":2, "Unsure":1, "No":0}
+
+        if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
+            pred_str = llm_response.split("[/INST]")[-1].split(",")[0].strip()
+            if pred_str in pred_labels:
+                pred_int = pred_labels[pred_str]
+            return pred_int
+        elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
+            pred_str = llm_response.split("\n")[0].strip()
+            if pred_str in pred_labels:
+                pred_int = pred_labels[pred_str]
+            return pred_int
