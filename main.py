@@ -5,52 +5,11 @@ from transformers.utils import logging
 import argparse
 logging.set_verbosity_error() 
 
-"""
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
-model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1", torch_dtype=torch.float16, device_map="auto")
-tokenizer = AutoTokenizer.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1")
-
-prompt = "<s> [INST] hello. how are you? [/INST]"
-model_inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
-
-generated_ids = model.generate(**model_inputs, max_new_tokens=100, do_sample=False)
-output = tokenizer.batch_decode(generated_ids)[0]
-print(output)
-exit()
-"""
-"""
-from transformers import pipeline
-import torch
-
-model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-pipe = pipeline(
-    "text-generation",
-    model=model_id,
-    model_kwargs={"torch_dtype": torch.bfloat16},
-    device="cuda",
-)
-
-messages = [
-    {"role": "user", "content": "Hello. How are you? reply within brackets like this {}"},
-]
-outputs = pipe(
-    messages,
-    max_new_tokens=256,
-    do_sample=False,
-)
-assistant_response = outputs[0]["generated_text"][-1]["content"]
-print(outputs)
-exit()
-"""
-
 
 # options for label:
 # EPIC   -> ["irony"]
 # BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
-# DICES  -> ["degree_of_harm"]
-
+# DICES  -> ["Q2_harmful_content_overall"]
 
 def parse_args():
     parser = argparse.ArgumentParser()

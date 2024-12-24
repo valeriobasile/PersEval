@@ -193,7 +193,7 @@ class PerspectivistLLM():
                 device="cuda")
 
     def predict(self):
-        #count=0
+        count=0
         with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended), "w") as fo:
             writer = csv.DictWriter(
                 fo,
@@ -209,9 +209,9 @@ class PerspectivistLLM():
                 traits = sample.user.traits
                 label = sample.label
                 text = sample.instance_text
-                #count += 1
-                #if count%10 != 0:
-                    #continue
+                count += 1
+                if count%10 != 0:
+                    continue
                 #print(sample.instance_id)
                 #print(sample.instance_text)
                 #print(sample.user.id)
@@ -234,9 +234,10 @@ class PerspectivistLLM():
                     outputs = self.llama(messages, max_new_tokens=100, do_sample=False)
                     llm_response = outputs[0]["generated_text"][-1]["content"]
 
-                #print(llm_response)
-                #if count == 40:
-                    #exit()
+                print(llm_response)
+                #exit()
+                if count == 40:
+                    exit()
 
                 # TODO add parsing operation here for the predictions
                 
@@ -254,17 +255,21 @@ class PerspectivistLLM():
     def create_prompt(self, text, traits):
         prompt_options = config.prompts[self.dataset]
       
+        #add intructions and explanations
         prompt = f"{prompt_options['prelude']} {prompt_options['task']} {prompt_options['instr_pre']}" 
         
+        #dynamically add the options
         pred_option_count = len(prompt_options["pred_opt"])
         for i in range(pred_option_count-1): 
             prompt = prompt + f" {prompt_options['pred_opt'][i]},"
+        prompt = prompt + f"{prompt_options['pred_opt'][-1]} {prompt_options['instr_post']}.\n"
 
-        prompt = prompt + f" or {prompt_options['pred_opt'][-1]} {prompt_options['instr_post']}\n"
-
+        #add the context part
+        prompt = prompt + f"{prompt_options['context_pre']}\n"
         for key, value in text.items():
             prompt = prompt + f"{key}:\n {value}\n"
-        #print(prompt)
+        prompt = prompt + f"{prompt_options['context_post']}"
 
+        print(prompt)
         return prompt
         #return "Hello. How are you? reply with ascii art"

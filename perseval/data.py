@@ -492,8 +492,8 @@ class DICES(PerspectivistDataset):
         super(DICES, self).__init__()
         self.name = "DICES"
         self.dataset = load_from_disk("data/diverse_safety_adversarial_dialog_350_enhanced")
-        self.dataset = self.dataset.map(lambda x: {"degree_of_harm": {"Extreme":3, "Moderate":2, "Debatable":1, "Benign":0}[x["degree_of_harm"]]})
-        self.labels["degree_of_harm"] = set()
+        self.dataset = self.dataset.map(lambda x: {"Q2_harmful_content_overall": {"Yes":2, "Unsure":1, "No":0}[x["Q2_harmful_content_overall"]]})
+        self.labels["Q2_harmful_content_overall"] = set()
 
 
     def get_splits(self, extended, user_adaptation, named):
@@ -565,8 +565,8 @@ class DICES(PerspectivistDataset):
                     (row['rater_id'] in adaptation_test_user_ids and row['text_id'] in adaptation_text_ids and split.type=="adaptation") or \
                         (row['rater_id'] in adaptation_test_user_ids and row['text_id'] in test_text_ids and split.type=="test"):
                     split.annotation[(row['rater_id'], row['text_id'])] = {}
-                    split.annotation[(row['rater_id'], row['text_id'])]["degree_of_harm"] = row['degree_of_harm']
-                    self.labels["degree_of_harm"].add(row['degree_of_harm'])
+                    split.annotation[(row['rater_id'], row['text_id'])]["Q2_harmful_content_overall"] = row['Q2_harmful_content_overall']
+                    self.labels["Q2_harmful_content_overall"].add(row['Q2_harmful_content_overall'])
                 
                 # Read labels by text
                 if (row['rater_id'] in train_user_ids and split.type=="train") or \
@@ -575,8 +575,8 @@ class DICES(PerspectivistDataset):
                     if not row['text_id'] in split.annotation_by_text:
                         split.annotation_by_text[row['text_id']] = []
                     split.annotation_by_text[row['text_id']].append(
-                        {"user": split.users[row['rater_id']], "label": {"degree_of_harm": row['degree_of_harm']}})
-                    self.labels["degree_of_harm"].add(row['degree_of_harm'])
+                        {"user": split.users[row['rater_id']], "label": {"Q2_harmful_content_overall": row['Q2_harmful_content_overall']}})
+                    self.labels["Q2_harmful_content_overall"].add(row['Q2_harmful_content_overall'])
         
         if user_adaptation == False:
             # You know nothing about the new test users except their explicit traits
