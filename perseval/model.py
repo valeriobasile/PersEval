@@ -268,7 +268,7 @@ class PerspectivistLLM():
 
     
     def parse_output(self, llm_response):
-        pred_labels = config[self.label]
+        pred_labels = config.label_map[self.label]
 
         if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
             pred_str = llm_response.split("[/INST]")[-1].split(",")[0].strip()

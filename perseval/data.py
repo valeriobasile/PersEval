@@ -173,12 +173,13 @@ class User:
 
 @dataclass
 class Epic(PerspectivistDataset):
-    def __init__(self):
+    def __init__(self, label):
         super(Epic, self).__init__()
         self.name = "EPIC"
+        self.label = label
         dataset = load_dataset("Multilingual-Perspectivist-NLU/EPIC")
         self.dataset = dataset["train"]
-        self.dataset = self.dataset.map(lambda x: {"label": config[label] [x["label"]]})
+        self.dataset = self.dataset.map(lambda x: {"label": config.label_map[label][x["label"]]})
         self.labels[label] = set()
 
     def get_splits(self, extended, user_adaptation, named):
@@ -259,8 +260,8 @@ class Epic(PerspectivistDataset):
                     (row['user'] in adaptation_test_user_ids and row['id_original'] in adaptation_text_ids and split.type=="adaptation") or \
                         (row['user'] in adaptation_test_user_ids and row['id_original'] in test_text_ids and split.type=="test"):
                     split.annotation[(row['user'], row['id_original'])] = {}
-                    split.annotation[(row['user'], row['id_original'])][label] = row['label']
-                    self.labels[label].add(row['label'])
+                    split.annotation[(row['user'], row['id_original'])][self.label] = row['label']
+                    self.labels[self.label].add(row['label'])
 
                 # Read labels by text
                 if (row['user'] in train_user_ids and split.type=="train") or \
@@ -269,8 +270,8 @@ class Epic(PerspectivistDataset):
                     if not row['id_original'] in split.annotation_by_text:
                         split.annotation_by_text[row['id_original']] = []
                     split.annotation_by_text[row['id_original']].append(
-                        {"user": split.users[row['user']], "label": {label: row['label']}})
-                    self.labels[label].add(row['label'])
+                        {"user": split.users[row['user']], "label": {self.label: row['label']}})
+                    self.labels[self.label].add(row['label'])
         
         if user_adaptation == False:
             # You know nothing about the new test users except their explicit traits
@@ -491,8 +492,9 @@ class DICES(PerspectivistDataset):
     def __init__(self, label):
         super(DICES, self).__init__()
         self.name = "DICES"
+        self.label = label
         self.dataset = load_from_disk("data/diverse_safety_adversarial_dialog_350_enhanced")
-        self.dataset = self.dataset.map(lambda x: {label: config[label] [x[label]]})
+        self.dataset = self.dataset.map(lambda x: {label: config.label_map[label][x[label]]})
         self.labels[label] = set()
 
 
@@ -565,8 +567,8 @@ class DICES(PerspectivistDataset):
                     (row['rater_id'] in adaptation_test_user_ids and row['text_id'] in adaptation_text_ids and split.type=="adaptation") or \
                         (row['rater_id'] in adaptation_test_user_ids and row['text_id'] in test_text_ids and split.type=="test"):
                     split.annotation[(row['rater_id'], row['text_id'])] = {}
-                    split.annotation[(row['rater_id'], row['text_id'])][label] = row[label]
-                    self.labels[label].add(row[label])
+                    split.annotation[(row['rater_id'], row['text_id'])][self.label] = row[self.label]
+                    self.labels[self.label].add(row[self.label])
                 
                 # Read labels by text
                 if (row['rater_id'] in train_user_ids and split.type=="train") or \
@@ -575,8 +577,8 @@ class DICES(PerspectivistDataset):
                     if not row['text_id'] in split.annotation_by_text:
                         split.annotation_by_text[row['text_id']] = []
                     split.annotation_by_text[row['text_id']].append(
-                        {"user": split.users[row['rater_id']], "label": {label: row[label]}})
-                    self.labels[label].add(row[label])
+                        {"user": split.users[row['rater_id']], "label": {self.label: row[self.label]}})
+                    self.labels[self.label].add(row[self.label])
         
         if user_adaptation == False:
             # You know nothing about the new test users except their explicit traits

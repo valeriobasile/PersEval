@@ -38,6 +38,11 @@ max_length=512
 
 prediction_dir = "predictions"
 
+label_map = {
+    "irony": {"iro":1, "not":0},
+    "Q2_harmful_content_overall": {"Yes":2, "Unsure":1, "No":0}
+}
+
 prompts = {
     "EPIC": {
         "prelude": "", 
@@ -48,8 +53,7 @@ prompts = {
         "context_pre": "Input:",
         "context_post": "Output:",
         "traits": [
-            ],
-        "irony": {"iro":1, "not":0}
+            ]
         },
     "BREXIT": {
         "prelude": "", 
@@ -83,7 +87,6 @@ prompts = {
                 "an older person of generation X",
                 "a person with a college degree or higher",
                 "a person with a high school diploma or lower",
-            ],
-        "Q2_harmful_content_overall": {"Yes":2, "Unsure":1, "No":0}
+            ]
     }
 }
