@@ -14,6 +14,11 @@ logging.set_verbosity_error()
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--label",
+        type=str,
+        required=True,
+        default="irony")
+    parser.add_argument(
         "--dataset-name", 
         type=str, 
         required=False,
@@ -27,11 +32,6 @@ def parse_args():
         default="roberta-base",
         help="Name of the transformer model to run inference on")
     parser.add_argument(
-        "--label",
-        type=str,
-        required=False,
-        default="irony")
-    parser.add_argument(
         "--use-llm",
         action='store_true')
     return parser.parse_args()
@@ -42,11 +42,11 @@ def main():
 
     # initialize the dataset
     if args.dataset_name == "Epic":
-        perspectivist_dataset = Epic()
+        perspectivist_dataset = Epic(args.label)
     elif args.dataset_name == "Brexit":
-        perspectivist_dataset = Brexit()
+        perspectivist_dataset = Brexit(args.label)
     elif args.dataset_name == "DICES":
-        perspectivist_dataset = DICES()
+        perspectivist_dataset = DICES(args.label)
     perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
 
     # create the model

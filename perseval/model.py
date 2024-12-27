@@ -195,12 +195,7 @@ class PerspectivistLLM():
     def predict(self):
         count=0
         with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended), "w") as fo:
-            writer = csv.DictWriter(
-                fo,
-                fieldnames=[
-                    "user_id",
-                    "text_id",
-                    "label"])
+            writer = csv.DictWriter(fo, fieldnames=["user_id", "text_id", "label"])
             writer.writeheader()
 
             for sample in tqdm(self.test_split):
@@ -273,8 +268,7 @@ class PerspectivistLLM():
 
     
     def parse_output(self, llm_response):
-        #TODO get this to the config and build a better automation (also change the classes in data.py)
-        pred_labels = {"Yes":2, "Unsure":1, "No":0}
+        pred_labels = config[self.label]
 
         if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
             pred_str = llm_response.split("[/INST]")[-1].split(",")[0].strip()
