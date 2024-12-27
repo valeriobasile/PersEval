@@ -194,62 +194,76 @@ class PerspectivistLLM():
 
     def predict(self):
         count=0
-        with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended), "w") as fo:
-            writer = csv.DictWriter(fo, fieldnames=["user_id", "text_id", "label"])
-            writer.writeheader()
+        if self.named:
+            settings = config.prompts[self.dataset]["traits"]
+        else:
+            settings = ["zero"]
 
-            for sample in tqdm(self.test_split):
-                text_id = sample.instance_id
-                user_id = sample.user.id
-                traits = sample.user.traits
-                label = sample.label
-                text = sample.instance_text
-                count += 1
-                if count%10 != 0:
-                    continue
-                #print(sample.instance_id)
-                #print(sample.instance_text)
-                #print(sample.user.id)
-                #print(sample.user.traits)
-                #print(sample.label)
+        for trait in settings:
+            filename = "/predictions_%s_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended, trait)
+            with open(config.prediction_dir+filename, "w") as fo:
+                writer = csv.DictWriter(fo, fieldnames=["user_id", "text_id", "label", "thoughts"])
+                writer.writeheader()
 
-                prompt = self.create_prompt(text, traits)
+                for sample in tqdm(self.test_split):
+                    text_id = sample.instance_id
+                    user_id = sample.user.id
+                    traits = sample.user.traits
+                    label = sample.label
+                    text = sample.instance_text
+                    count += 1
+                    if count%10 != 0:
+                        continue
+                    #print(sample.instance_id)
+                    #print(sample.instance_text)
+                    #print(sample.user.id)
+                    #print(sample.user.traits)
+                    #print(sample.label)
 
-                if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
-                    #prepare
-                    messages = [{"role": "user", "content": prompt}]
-                    model_inputs = self.mixtral_tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
-                    #infer
-                    generated_ids = self.mixtral.generate(model_inputs, max_new_tokens=100, do_sample=False)
-                    llm_response = self.mixtral_tokenizer.batch_decode(generated_ids)[0]
-                elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
-                    #prepare
-                    messages = [{"role": "user", "content": prompt}]
-                    #infer
-                    outputs = self.llama(messages, max_new_tokens=100, do_sample=False)
-                    llm_response = outputs[0]["generated_text"][-1]["content"]
+                    prompt = self.create_prompt(text, trait)
 
-                print(f"\n\nllm_response: {llm_response}")
-                #exit()
-                if count == 40:
-                    exit()
+                    if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
+                        #prepare
+                        messages = [{"role": "user", "content": prompt}]
+                        model_inputs = self.mixtral_tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+                        #infer
+                        generated_ids = self.mixtral.generate(model_inputs, max_new_tokens=100, do_sample=False)
+                        llm_response = self.mixtral_tokenizer.batch_decode(generated_ids)[0]
+                    elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
+                        #prepare
+                        messages = [{"role": "user", "content": prompt}]
+                        #infer
+                        outputs = self.llama(messages, max_new_tokens=100, do_sample=False)
+                        llm_response = outputs[0]["generated_text"][-1]["content"]
 
-                # TODO add parsing operation here for the predictions
-                prediction = self.parse_output(llm_response)
-                print(f"pred: {prediction}\n\n")
-                
-                writer.writerow({
-                    "user_id": user_id,
-                    "text_id": text_id,
-                    "label": llm_response
-                })
+                    print(f"\n\nllm_response: {llm_response}")
+                    #exit()
+                    if count == 40:
+                        exit()
+
+                    # TODO add parsing operation here for the predictions
+                    prediction = self.parse_output(llm_response)
+                    print(f"pred: {prediction}\n\n")
+                    
+                    writer.writerow({
+                        "user_id": user_id,
+                        "text_id": text_id,
+                        "label": prediction,
+                        "thoughts": llm_response
+                    })
 
 
-    def create_prompt(self, text, traits):
+    def create_prompt(self, text, trait):
         prompt_options = config.prompts[self.dataset]
       
+        #add perspective if it is set
+        if self.named:
+            prompt = f"You are {trait}.\n"
+        else:
+            prompt = ""
+
         #add intructions and explanations
-        prompt = f"{prompt_options['prelude']} {prompt_options['task']} {prompt_options['instr_pre']}" 
+        prompt = prompt + f"{prompt_options['prelude']} {prompt_options['task']} {prompt_options['instr_pre']}" 
         
         #dynamically add the options
         pred_option_count = len(prompt_options["pred_opt"])

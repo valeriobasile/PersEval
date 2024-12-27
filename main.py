@@ -1,23 +1,20 @@
 from perseval.data import *
 from perseval.model import *
 from perseval.evaluation import *
+from perseval.config import prompts
 from transformers.utils import logging
 import argparse
+
 logging.set_verbosity_error() 
 
 
-# options for label:
+# options for labels:
 # EPIC   -> ["irony"]
 # BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
 # DICES  -> ["Q2_harmful_content_overall"]
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--label",
-        type=str,
-        required=True,
-        default="irony")
     parser.add_argument(
         "--dataset-name", 
         type=str, 
@@ -31,6 +28,11 @@ def parse_args():
         required=False,
         default="roberta-base",
         help="Name of the transformer model to run inference on")
+    parser.add_argument(
+        "--label",
+        type=str,
+        required=False,
+        default="irony")
     parser.add_argument(
         "--use-llm",
         action='store_true')
@@ -67,22 +69,37 @@ def main():
         model.predict()         #     "user_id", "text_id", "label"
 
 
-    evaluator = Evaluator(prediction_path="predictions/predictions_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended),
-                        test_set=perspectivist_dataset.test_set,
-                        label=args.label)
-    evaluator.global_metrics()
-    evaluator.annotator_level_metrics()
-    evaluator.text_level_metrics()
-    evaluator.trait_level_metrics()
+    #run the evaluations depending on the experiment type
+    filnames = []
+    if self.named:
+        settings = config.prompts[perspectivist_dataset.name]["traits"]
+    else:
+        settings = ["zero"]
+    if args.use_llm:
+        for trait in setting:
+            filename = prediction_path="predictions/predictions_%s_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended, trait)
+            filenames.append(filename)
+    else:
+        filename = prediction_path="predictions/predictions_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended)
+ 
 
-    # You can also access the metrics from
-    #print(evaluator.global_metrics_dic)
-    #print(evaluator.annotator_level_metrics_dic)
-    #print(evaluator.annotator_based_macro_avg)
-    #print(evaluator.text_level_metrics_dic)
-    #print(evaluator.text_based_macro_avg)
-    #print(evaluator.trait_level_metrics_dic)
-    #print(evaluator.trait_based_macro_avg)
+    for pred_files in filenames:   
+        evaluator = Evaluator(pred_files,
+                            test_set=perspectivist_dataset.test_set,
+                            label=args.label)
+        evaluator.global_metrics()
+        evaluator.annotator_level_metrics()
+        evaluator.text_level_metrics()
+        evaluator.trait_level_metrics()
+
+        # You can also access the metrics from
+        #print(evaluator.global_metrics_dic)
+        #print(evaluator.annotator_level_metrics_dic)
+        #print(evaluator.annotator_based_macro_avg)
+        #print(evaluator.text_level_metrics_dic)
+        #print(evaluator.text_based_macro_avg)
+        #print(evaluator.trait_level_metrics_dic)
+        #print(evaluator.trait_based_macro_avg)
 
 
 if __name__ == "__main__":
