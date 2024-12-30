@@ -24,6 +24,21 @@ dataset_specific_splits = {
     }
 }
 
+# options for label:
+# EPIC   -> ["irony"]
+# BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
+# DICES  -> ["degree_of_harm"]
+# MHS    -> ["hateful"]
+# MD     -> ["offensiveness"]
+
+dataset_label ={
+    "EPIC": "irony",
+    "DICES-350":"degree_of_harm",
+    "BREXIT":"hs",
+    "MHS":"hateful",
+    "MD":"offensiveness"
+}
+
 model_config = {
     "roberta-base": {
         "output_dir": "./results",

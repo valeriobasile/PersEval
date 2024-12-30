@@ -179,7 +179,7 @@ class Epic(PerspectivistDataset):
         dataset = load_dataset("Multilingual-Perspectivist-NLU/EPIC")
         self.dataset = dataset["train"]
         self.dataset = self.dataset.map(lambda x: {"label": {"iro":1, "not":0}[x["label"]]})
-        self.label="irony"
+        self.label = config.dataset_label[self.name]
         self.labels["irony"] = set()
 
     def get_splits(self, extended, user_adaptation, named, baseline=False):
@@ -349,7 +349,7 @@ class Brexit(PerspectivistDataset):
         dataset = load_dataset("silvia-casola/BREXIT")
         self.dataset = concatenate_datasets([dataset["train"], dataset["validation"], dataset["test"]])
         labels = ["hs", "offensiveness", "aggressiveness", "stereotype"]
-        self.label= "hs"
+        self.label = config.dataset_label[self.name]
         for label in labels:
             self.labels[label] = set()
 
@@ -494,7 +494,7 @@ class MHS(PerspectivistDataset):
         self.name = "MHS"
         dataset = load_dataset("ucberkeley-dlab/measuring-hate-speech")
         self.dataset = dataset["train"]
-        self.label="hateful"
+        self.label = config.dataset_label[self.name]
         self.dataset = self.dataset.map(lambda x: {"hateful": 1 if x["hatespeech"] > 0 else 0})
         self.labels["hateful"] = set()
 
@@ -693,7 +693,7 @@ class DICES(PerspectivistDataset):
         self.dataset = load_from_disk("data/diverse_safety_adversarial_dialog_350_enhanced")
         self.dataset = self.dataset.map(lambda x: {"degree_of_harm": {"Extreme":3, "Moderate":2, "Debatable":1, "Benign":0}[x["degree_of_harm"]]})
         self.labels["degree_of_harm"] = set()
-        self.label="degree_of_harm"
+        self.label = config.dataset_label[self.name]
 
 
     def get_splits(self, extended, user_adaptation, named):
@@ -836,7 +836,7 @@ class MD(PerspectivistDataset):
         dataset = load_dataset("csv", data_files="data/MD-Agreement_dataset/MD_agreement.csv")
         self.dataset = dataset["train"]
         self.labels["offensiveness"] = set()
-        self.label = "offensiveness"
+        self.label = config.dataset_label[self.name]
 
     def get_splits(self, extended, user_adaptation, named):
         if not user_adaptation in [False, "train", "test"]:
