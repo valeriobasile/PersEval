@@ -33,7 +33,7 @@ class PerspectivistDataset:
 
     def describe_splits(self):
         if not self.training_set.users:
-            raise Exception("You need to first choose a task through "+self.name+".get_splits(extended, user_adaptation, named)")
+            raise Exception("You need to first choose a task through "+self.name+".get_splits(extended, user_adaptation, named,baseline)")
         
         print("--- Unique users ---")
         print("Train set: %d" % len(self.training_set.users))
@@ -179,9 +179,10 @@ class Epic(PerspectivistDataset):
         dataset = load_dataset("Multilingual-Perspectivist-NLU/EPIC")
         self.dataset = dataset["train"]
         self.dataset = self.dataset.map(lambda x: {"label": {"iro":1, "not":0}[x["label"]]})
+        self.label="irony"
         self.labels["irony"] = set()
 
-    def get_splits(self, extended, user_adaptation, named):
+    def get_splits(self, extended, user_adaptation, named, baseline=False):
         if not user_adaptation in [False, "train", "test"]:
             raise Exception(
                 "Possible values are:\n \
@@ -199,7 +200,7 @@ class Epic(PerspectivistDataset):
 
         self.training_set = self.adaptation_set = self.test_set = None
 
-        if not user_adaptation and not named:
+        if (not user_adaptation and not named) and not baseline:
             raise Exception("Invalid parameter configuration (user_adaptation=False, named=False). \
                             You need to at least know the explicit user traits for test users if no annotations are available")
         
@@ -348,10 +349,11 @@ class Brexit(PerspectivistDataset):
         dataset = load_dataset("silvia-casola/BREXIT")
         self.dataset = concatenate_datasets([dataset["train"], dataset["validation"], dataset["test"]])
         labels = ["hs", "offensiveness", "aggressiveness", "stereotype"]
+        self.label= "hs"
         for label in labels:
             self.labels[label] = set()
 
-    def get_splits(self, extended, user_adaptation, named):
+    def get_splits(self, extended, user_adaptation, named, baseline=False):
         if not user_adaptation in [False, "train", "test"]:
             raise Exception(
                 "Possible values are:\n \
@@ -367,7 +369,7 @@ class Brexit(PerspectivistDataset):
         log.info("Generating. Named: %s, User adaptation: %s, Extended: %s" % (named, user_adaptation, extended))
         self.training_set = self.adaptation_set = self.test_set = None
 
-        if not user_adaptation and not named:
+        if (not user_adaptation and not named) and not baseline:
             raise Exception("Invalid parameter configuration (user_adaptation=False, named=False). \
                             You need to at least know the explicit user traits for test users if no annotations are available")
         
@@ -492,10 +494,11 @@ class MHS(PerspectivistDataset):
         self.name = "MHS"
         dataset = load_dataset("ucberkeley-dlab/measuring-hate-speech")
         self.dataset = dataset["train"]
+        self.label="hateful"
         self.dataset = self.dataset.map(lambda x: {"hateful": 1 if x["hatespeech"] > 0 else 0})
         self.labels["hateful"] = set()
 
-    def get_splits(self, extended, user_adaptation, named):
+    def get_splits(self, extended, user_adaptation, named, baseline = False):
         if not user_adaptation in [False, "train", "test"]:
             raise Exception(
                 "Possible values are:\n \
@@ -513,7 +516,7 @@ class MHS(PerspectivistDataset):
 
         self.training_set = self.adaptation_set = self.test_set = None
 
-        if not user_adaptation and not named:
+        if (not user_adaptation and not named) and not baseline:
             raise Exception("Invalid parameter configuration (user_adaptation=False, named=False). \
                             You need to at least know the explicit user traits for test users if no annotations are available")
         

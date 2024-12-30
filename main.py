@@ -2,14 +2,14 @@ from perseval.data import *
 from perseval.model import *
 from perseval.evaluation import *
 from transformers.utils import logging
-logging.set_verbosity_error() 
+logging.set_verbosity_info() 
 
 perspectivist_dataset = MHS()
 perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
-model_label="irony" if perspectivist_dataset.name == "EPIC" or perspectivist_dataset.name == "BREXIT" else "hateful"
 model = PerspectivistEncoder("roberta-base", 
                             perspectivist_dataset, 
-                            label=model_label)
+                            label=perspectivist_dataset.label,
+                            baseline=False)
 
 trainer = model.train()
 model.predict(trainer) # <-- Predictions are saved in the "predictions" folder, 
@@ -19,7 +19,7 @@ model.predict(trainer) # <-- Predictions are saved in the "predictions" folder,
 
 evaluator = Evaluator(prediction_path="predictions/predictions_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended),
                       test_set=perspectivist_dataset.test_set,
-                      label=model_label)
+                      label=perspectivist_dataset.label)
 evaluator.global_metrics()
 evaluator.annotator_level_metrics()
 evaluator.text_level_metrics()

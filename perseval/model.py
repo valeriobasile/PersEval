@@ -10,11 +10,12 @@ from datasets import Dataset
 import torch
 from sklearn.utils import compute_class_weight
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 from . import config
 
 class PerspectivistEncoder():
-    def __init__(self, model_identifier, persp_dataset, label):
+    def __init__(self, model_identifier, persp_dataset, label, baseline=False):
         self.model_id = model_identifier
         self.training_split = persp_dataset.training_set
         self.adaptation_split = persp_dataset.adaptation_set        
@@ -25,13 +26,15 @@ class PerspectivistEncoder():
         self.user_adaptation = persp_dataset.user_adaptation
         self.extended = persp_dataset.extended
         self.dataset = persp_dataset.name 
+        self.baseline= baseline
     
         self.tokenizer = AutoTokenizer.from_pretrained(model_identifier)
         self.model = AutoModelForSequenceClassification.from_pretrained(model_identifier)
 
 
     def train(self):
-        self.__add_special_tokens_to_tokenizer()
+        if not self.baseline:
+            self.__add_special_tokens_to_tokenizer()
         set_seed(config.seed)
         data = {"train" : self.__generate_data(self.training_split)[0]}   
         # computer class weight (in case labels are unbalanced)        
@@ -43,6 +46,10 @@ class PerspectivistEncoder():
         except Exception as e:
             print("Unable to balance classes")
             class_weights = np.array([1, 1]).astype("float32")
+        data["train"]=data["train"].to_pandas()
+        data["train"], data["eval"] = train_test_split(data["train"], test_size=config.eval_percentage, stratify=data["train"]['labels'], random_state=config.seed)
+        data["train"] = Dataset.from_pandas(data["train"])
+        data["eval"] = Dataset.from_pandas(data["eval"])
 
 
         print('We will use the device:', torch.cuda.get_device_name(0))
@@ -63,18 +70,23 @@ class PerspectivistEncoder():
             model=self.model,
             args=training_args,
             train_dataset=data["train"],
+            eval_dataset=data["eval"]
         )
         trainer.set_class_weights(class_weights)
         trainer.train()
         return trainer
     
 
-    def predict(self, trainer):
+    def predict(self, trainer,path=None):
         test_data, ids = self.__generate_data(self.test_split)
         predictions = trainer.predict(test_data)
         if not os.path.exists(config.prediction_dir): 
             os.makedirs(config.prediction_dir)  
-        with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended), "w") as fo:
+        if not self.baseline:
+            dir = config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended)
+        else:
+            dir = config.prediction_dir+"/predictions_%s_baseline.csv" % (self.dataset)
+        with open(dir, "w") as fo:
             writer = csv.DictWriter(
                 fo,
                 fieldnames=[
