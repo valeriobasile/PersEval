@@ -1,6 +1,7 @@
 import sys
 sys.path.append("..")
 import os
+import string 
 
 import pandas as pd
 import csv
@@ -221,17 +222,15 @@ class PerspectivistLLM():
                     #print(sample.label)
 
                     prompt = self.create_prompt(text, trait)
+                    messages = [{"role": "user", "content": prompt}]
 
                     if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
                         #prepare
-                        messages = [{"role": "user", "content": prompt}]
                         model_inputs = self.mixtral_tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
                         #infer
                         generated_ids = self.mixtral.generate(model_inputs, max_new_tokens=100, do_sample=False)
                         llm_response = self.mixtral_tokenizer.batch_decode(generated_ids)[0]
                     elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
-                        #prepare
-                        messages = [{"role": "user", "content": prompt}]
                         #infer
                         outputs = self.llama(messages, max_new_tokens=100, do_sample=False)
                         llm_response = outputs[0]["generated_text"][-1]["content"]
@@ -268,8 +267,8 @@ class PerspectivistLLM():
         #dynamically add the options
         pred_option_count = len(prompt_options["pred_opt"])
         for i in range(pred_option_count-1): 
-            prompt = prompt + f" {prompt_options['pred_opt'][i]},"
-        prompt = prompt + f" {prompt_options['pred_opt'][-1]} {prompt_options['instr_post']}.\n"
+            prompt = prompt + f" \"{prompt_options['pred_opt'][i]}\""
+        prompt = prompt + f" or \"{prompt_options['pred_opt'][-1]}\" {prompt_options['instr_post']}.\n"
 
         #add the context part
         prompt = prompt + f"{prompt_options['context_pre']}\n"
@@ -282,15 +281,21 @@ class PerspectivistLLM():
 
     
     def parse_output(self, llm_response):
-        pred_labels = config.label_map[self.label]
+        #prep label strings
+        pred_labels = config.label_map[self.label+"_pred"]
 
+        #parse llm predictions
         if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
-            pred_str = llm_response.split("[/INST]")[-1].split(",")[0].strip()
-            if pred_str in pred_labels:
-                pred_int = pred_labels[pred_str]
-            return pred_int
-        elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
-            pred_str = llm_response.split("\n")[0].strip()
-            if pred_str in pred_labels:
-                pred_int = pred_labels[pred_str]
-            return pred_int
+            llm_response = llm_response.split("[/INST]")[-1]
+        pred_str = llm_response.split("\n")[0].strip().lower()
+
+        #map the predictions
+        if pred_str in pred_labels:
+            pred_int = pred_labels[pred_str]
+        elif pred_str.split(",")[0].strip() in pred_labels: #safeguard against the sporadic removal of new line (for mixtral)
+            pred_int = pred_labels[pred_str.split(",")[0].strip()]
+            #table = str.maketrans(dict.fromkeys(string.punctuation))
+            #pred_str = pred_str.translate(table)
+        return pred_int
+        #else:
+        #    return -1

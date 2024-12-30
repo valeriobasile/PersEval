@@ -8,6 +8,10 @@ import argparse
 logging.set_verbosity_error() 
 
 
+# options for models
+# mistralai/Mixtral-8x7B-Instruct-v0.1
+# meta-llama/Meta-Llama-3.1-8B-Instruct
+
 # options for labels:
 # EPIC   -> ["irony"]
 # BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
@@ -36,6 +40,12 @@ def parse_args():
     parser.add_argument(
         "--use-llm",
         action='store_true')
+    parser.add_argument(
+        "--named",
+        action='store_true')
+    parser.add_argument(
+        "--extended",
+        action='store_true')
     return parser.parse_args()
 
 
@@ -46,10 +56,10 @@ def main():
     if args.dataset_name == "Epic":
         perspectivist_dataset = Epic(args.label)
     elif args.dataset_name == "Brexit":
-        perspectivist_dataset = Brexit(args.label)
+        perspectivist_dataset = Brexit()
     elif args.dataset_name == "DICES":
         perspectivist_dataset = DICES(args.label)
-    perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
+    perspectivist_dataset.get_splits(user_adaptation="train", extended=args.extended, named=args.named)
 
     # create the model
     if args.use_llm:
