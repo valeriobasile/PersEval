@@ -4,13 +4,16 @@ from perseval.evaluation import *
 from transformers.utils import logging
 logging.set_verbosity_info() 
 
-perspectivist_dataset = DICES()
-perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=True)
+perspectivist_dataset = MD()
+perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=False)
 
 # options for label:
 # EPIC   -> ["irony"]
 # BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
 # DICES  -> ["degree_of_harm"]
+# MHS    -> ["hateful"]
+# MD     -> ["offensiveness"]
+
 model = PerspectivistEncoder("roberta-base", 
                             perspectivist_dataset, 
                             label=perspectivist_dataset.label,
