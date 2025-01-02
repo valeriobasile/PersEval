@@ -10,11 +10,12 @@ from datasets import Dataset
 import torch
 from sklearn.utils import compute_class_weight
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 from . import config
 
 class PerspectivistEncoder():
-    def __init__(self, model_identifier, persp_dataset, label):
+    def __init__(self, model_identifier, persp_dataset, label, baseline=False):
         self.model_id = model_identifier
         self.training_split = persp_dataset.training_set
         self.adaptation_split = persp_dataset.adaptation_set        
@@ -25,6 +26,7 @@ class PerspectivistEncoder():
         self.user_adaptation = persp_dataset.user_adaptation
         self.extended = persp_dataset.extended
         self.dataset = persp_dataset.name 
+        self.baseline= baseline
     
         self.tokenizer = AutoTokenizer.from_pretrained(model_identifier)
         if persp_dataset.name == "DICES-350":
@@ -34,7 +36,8 @@ class PerspectivistEncoder():
 
 
     def train(self):
-        self.__add_special_tokens_to_tokenizer()
+        if not self.baseline:
+            self.__add_special_tokens_to_tokenizer()
         set_seed(config.seed)
         data = {"train" : self.__generate_data(self.training_split)[0]}   
         # computer class weight (in case labels are unbalanced)        
@@ -46,19 +49,30 @@ class PerspectivistEncoder():
         except Exception as e:
             print("Unable to balance classes")
             class_weights = np.array([1, 1]).astype("float32")
+        data["train"]=data["train"].to_pandas()
+        data["train"], data["eval"] = train_test_split(data["train"], test_size=config.eval_percentage, stratify=data["train"]['labels'], random_state=config.seed)
+        data["train"] = Dataset.from_pandas(data["train"])
+        data["eval"] = Dataset.from_pandas(data["eval"])
 
 
         print('We will use the device:', torch.cuda.get_device_name(0))
         training_args = TrainingArguments(
-            seed=config.seed,
-            output_dir=config.model_config[self.model_id]["output_dir"],
-            num_train_epochs=config.model_config[self.model_id]["num_train_epochs"],
+            eval_strategy=config.model_config[self.model_id]["eval_strategy"],
+            greater_is_better=config.model_config[self.model_id]["greater_is_better"],
             learning_rate=config.model_config[self.model_id]["learning_rate"],
-            per_device_train_batch_size=config.model_config[self.model_id]["per_device_train_batch_size"],
-            save_strategy=config.model_config[self.model_id]["save_strategy"],
+            load_best_model_at_end=config.model_config[self.model_id]["load_best_model_at_end"],
+            logging_dir=config.model_config[self.model_id]["logging_dir"],
             logging_strategy=config.model_config[self.model_id]["logging_strategy"],
+            metric_for_best_model=config.model_config[self.model_id]["metric_for_best_model"],
+            num_train_epochs=config.model_config[self.model_id]["num_train_epochs"],
+            output_dir=config.model_config[self.model_id]["output_dir"],
             overwrite_output_dir=config.model_config[self.model_id]["overwrite_output_dir"],
-            report_to=config.model_config[self.model_id]["report_to"]
+            per_device_eval_batch_size=config.model_config[self.model_id]["per_device_eval_batch_size"],
+            per_device_train_batch_size=config.model_config[self.model_id]["per_device_train_batch_size"],
+            report_to=config.model_config[self.model_id]["report_to"],
+            save_strategy=config.model_config[self.model_id]["save_strategy"],
+            save_total_limit= config.model_config[self.model_id]["save_total_limit"],
+            seed=config.seed,
         )
 
 
@@ -66,18 +80,23 @@ class PerspectivistEncoder():
             model=self.model,
             args=training_args,
             train_dataset=data["train"],
+            eval_dataset=data["eval"]
         )
         trainer.set_class_weights(class_weights)
         trainer.train()
         return trainer
     
 
-    def predict(self, trainer):
+    def predict(self, trainer,path=None):
         test_data, ids = self.__generate_data(self.test_split)
         predictions = trainer.predict(test_data)
         if not os.path.exists(config.prediction_dir): 
             os.makedirs(config.prediction_dir)  
-        with open(config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended), "w") as fo:
+        if not self.baseline:
+            dir = config.prediction_dir+"/predictions_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended)
+        else:
+            dir = config.prediction_dir+"/predictions_%s_baseline.csv" % (self.dataset)
+        with open(dir, "w") as fo:
             writer = csv.DictWriter(
                 fo,
                 fieldnames=[
