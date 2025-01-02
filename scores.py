@@ -2,6 +2,7 @@ from perseval.data import *
 from perseval.model import *
 from perseval.evaluation import *
 from transformers.utils import logging
+import matplotlib.pyplot as plt
 logging.set_verbosity_info() 
 train=True
 baseline=True
@@ -24,6 +25,18 @@ if train:
                                                 label=perspectivist_dataset.label,
                                                 baseline=False)
                     trainer = model.train()
+                    logs = trainer.state.log_history
+                    train_loss = [log['loss'] for log in logs if 'loss' in log]
+                    eval_loss = [log['eval_loss'] for log in logs if 'eval_loss' in log]
+                    print("Train Loss",train_loss)
+                    print("Eval Loss",eval_loss)
+                    plt.plot(train_loss, label="Training Loss")
+                    plt.plot(eval_loss, label="Validation Loss")
+                    plt.xlabel("Epochs")
+                    plt.ylabel("Loss")
+                    plt.legend()
+                    plt.savefig("%s_%s_%s_%s.png" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended),dpi=600)
+                    plt.close()
                     model.predict(trainer) # <-- Predictions are saved in the "predictions" folder, 
                                         #     The file must contain three columns:
                                         #     "user_id", "text_id", "label"

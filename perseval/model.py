@@ -57,15 +57,22 @@ class PerspectivistEncoder():
 
         print('We will use the device:', torch.cuda.get_device_name(0))
         training_args = TrainingArguments(
-            seed=config.seed,
-            output_dir=config.model_config[self.model_id]["output_dir"],
-            num_train_epochs=config.model_config[self.model_id]["num_train_epochs"],
+            eval_strategy=config.model_config[self.model_id]["eval_strategy"],
+            greater_is_better=config.model_config[self.model_id]["greater_is_better"],
             learning_rate=config.model_config[self.model_id]["learning_rate"],
-            per_device_train_batch_size=config.model_config[self.model_id]["per_device_train_batch_size"],
-            save_strategy=config.model_config[self.model_id]["save_strategy"],
+            load_best_model_at_end=config.model_config[self.model_id]["load_best_model_at_end"],
+            logging_dir=config.model_config[self.model_id]["logging_dir"],
             logging_strategy=config.model_config[self.model_id]["logging_strategy"],
+            metric_for_best_model=config.model_config[self.model_id]["metric_for_best_model"],
+            num_train_epochs=config.model_config[self.model_id]["num_train_epochs"],
+            output_dir=config.model_config[self.model_id]["output_dir"],
             overwrite_output_dir=config.model_config[self.model_id]["overwrite_output_dir"],
-            report_to=config.model_config[self.model_id]["report_to"]
+            per_device_eval_batch_size=config.model_config[self.model_id]["per_device_eval_batch_size"],
+            per_device_train_batch_size=config.model_config[self.model_id]["per_device_train_batch_size"],
+            report_to=config.model_config[self.model_id]["report_to"],
+            save_strategy=config.model_config[self.model_id]["save_strategy"],
+            save_total_limit= config.model_config[self.model_id]["save_total_limit"],
+            seed=config.seed,
         )
 
 
