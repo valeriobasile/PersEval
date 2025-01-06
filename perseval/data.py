@@ -696,7 +696,7 @@ class DICES(PerspectivistDataset):
         self.label = config.dataset_label[self.name]
 
 
-    def get_splits(self, extended, user_adaptation, named):
+    def get_splits(self, extended, user_adaptation, named, baseline=False):
         if not user_adaptation in [False, "train", "test"]:
             raise Exception(
                 "Possible values are:\n \
@@ -712,7 +712,7 @@ class DICES(PerspectivistDataset):
         log.info("Generating. Named: %s, User adaptation: %s, Extended: %s" % (named, user_adaptation, extended))
         self.training_set = self.adaptation_set = self.test_set = None
 
-        if not user_adaptation and not named:
+        if (not user_adaptation and not named) and not baseline:
             raise Exception("Invalid parameter configuration (user_adaptation=False, named=False). \
                             You need to at least know the explicit user traits for test users if no annotations are available")
         
@@ -838,7 +838,7 @@ class MD(PerspectivistDataset):
         self.labels["offensiveness"] = set()
         self.label = config.dataset_label[self.name]
 
-    def get_splits(self, extended, user_adaptation, named):
+    def get_splits(self, extended, user_adaptation, named, baseline=False):
         if not user_adaptation in [False, "train", "test"]:
             raise Exception(
                 "Possible values are:\n \
@@ -856,7 +856,7 @@ class MD(PerspectivistDataset):
 
         self.training_set = self.adaptation_set = self.test_set = None
 
-        if not user_adaptation and not named:
+        if (not user_adaptation and not named) and not baseline:
             raise Exception("Invalid parameter configuration (user_adaptation=False, named=False). \
                             You need to at least know the explicit user traits for test users if no annotations are available")
 	

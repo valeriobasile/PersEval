@@ -16,6 +16,8 @@ if train:
                 for extended in [False, True]:
                     if user_adaptation == False and not named:
                         continue
+                    if dataset.name == "MD" and named:
+                        continue
                     print("-"*100)
                     print("Named" if named else "Unnamed","Adaptation:","None" if not user_adaptation else user_adaptation.capitalize(),"Extended:","No" if not extended else "Yes")
                     perspectivist_dataset = dataset
