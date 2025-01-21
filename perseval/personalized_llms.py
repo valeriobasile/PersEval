@@ -49,10 +49,10 @@ class PrepareData ():
 
 
 
-        def generate_input_data(sort_prompts):
+        def generate_input_data_named(store_prompts):
             trait_input_data = {}
 
-            for user, traits_prompts in sort_prompts.items():
+            for user, traits_prompts in store_prompts.items():
                 for trait, prompt in traits_prompts.items():
                     if trait not in trait_input_data:
                         trait_input_data[trait] = {}  # Initialize for each trait if not already present
@@ -66,7 +66,7 @@ class PrepareData ():
                     for key in self.test_split.annotation.keys():
                         u, t = key
                         
-                        if u != user:  # Match the user in sort_prompts with u
+                        if u != user:  # Match the user in store_prompts with u
                             continue
                         
                         if t in self.test_split.texts:
@@ -95,6 +95,36 @@ class PrepareData ():
                 with open(output_file, "w") as outfile:
                     json.dump(input_data, outfile, indent=4)
             
+
+
+        def generate_input_data_unnamed(prompt):
+            input_data = {}
+            for key in self.test_split.annotation.keys():
+                u, t = key
+                
+                if u not in input_data:
+                    input_data [u] = []
+
+                if t in self.test_split.texts:
+                    text_data = self.test_split.texts[t]
+                    
+                    txt_name = self.dataset_config["txt_name"]
+                    txt = text_data[txt_name]
+                    if context: 
+                        cntxt_name = self.dataset_config["cntxt_name"]
+                        cntxt = text_data[cntxt_name]
+                        formatted_text = (prompt +f"- {cntxt_name}: {cntxt} - {txt_name}: {txt}")
+                    else:
+                        formatted_text = (prompt + f"{txt_name}: {txt}")
+
+
+                    input_data[u].append(
+                        {"id":str(t), 
+                        "input":formatted_text, 
+                        "profile":profile.get(u, {})
+                        })
+                
+            return input_data
 
 
 
@@ -148,12 +178,12 @@ class PrepareData ():
 
                     store_traits[trait] = prompt
                 store_prompts [user] = store_traits
-            generate_input_data (store_prompts)
+            generate_input_data_named(store_prompts)
 
 
         else:
             prompt = generate_prompt()
-            input_data = generate_input_data(prompt=prompt)
+            input_data = generate_input_data_unnamed(prompt=prompt)
             
             with open(f"./data_LaMP/{self.dataset_name}_input.json", "w") as outfile: 
                 json.dump(input_data, outfile)
