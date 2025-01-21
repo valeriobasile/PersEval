@@ -47,34 +47,53 @@ class PrepareData ():
             return prompt
         
 
-        def generate_input_data (prompt):
-            input_data = {}
-            for key in self.test_split.annotation.keys():
-                u, t = key
-                
-                if u not in input_data:
-                    input_data [u] = []
 
-                if t in self.test_split.texts:
-                    text_data = self.test_split.texts[t]
+
+        def generate_input_data(sort_prompts):
+            trait_input_data = {}
+
+            for user, traits_prompts in sort_prompts.items():
+                for trait, prompt in traits_prompts.items():
+                    if trait not in trait_input_data:
+                        trait_input_data[trait] = {}  # Initialize for each trait if not already present
                     
-                    txt_name = self.dataset_config["txt_name"]
-                    txt = text_data[txt_name]
-                    if context: 
-                        cntxt_name = self.dataset_config["cntxt_name"]
-                        cntxt = text_data[cntxt_name]
-                        formatted_text = (prompt +f"- {cntxt_name}: {cntxt} - {txt_name}: {txt}")
-                    else:
-                        formatted_text = (prompt + f"{txt_name}: {txt}")
+                    # Store input data for the current user and trait
+                    input_data = trait_input_data[trait]
+                    
+                    if user not in input_data:
+                        input_data[user] = []
 
+                    for key in self.test_split.annotation.keys():
+                        u, t = key
+                        
+                        if u != user:  # Match the user in sort_prompts with u
+                            continue
+                        
+                        if t in self.test_split.texts:
+                            text_data = self.test_split.texts[t]
+                            
+                            txt_name = self.dataset_config["txt_name"]
+                            txt = text_data[txt_name]
+                            if context: 
+                                cntxt_name = self.dataset_config["cntxt_name"]
+                                cntxt = text_data[cntxt_name]
+                                formatted_text = (prompt + f" - {cntxt_name}: {cntxt} - {txt_name}: {txt}")
+                            else:
+                                formatted_text = (prompt + f" {txt_name}: {txt}")
 
-                    input_data[u].append(
-                        {"id":str(t), 
-                        "input":formatted_text, 
-                        "profile":profile.get(u, {})
-                        })
-                
-            return input_data
+                            input_data[u].append(
+                                {
+                                    "id": str(t),
+                                    "input": formatted_text,
+                                    "profile": profile.get(u, {})
+                                }
+                            )
+                    
+            # After collecting data for all users and traits, save the results for each trait
+            for trait, input_data in trait_input_data.items():
+                output_file = f"./data_LaMP/{self.dataset_name}_{trait}_input.json"
+                with open(output_file, "w") as outfile:
+                    json.dump(input_data, outfile, indent=4)
             
 
 
@@ -110,20 +129,27 @@ class PrepareData ():
 
         # create the test set input 
         if named:
-            for user_class in self.test_split.users.values():
+            store_prompts = {}
+            for user, user_class in self.test_split.users.items():
                 traits = user_class.traits
+                store_traits = {}
+
                 for trait,value in traits.items():
+                    trait_value = None
+
                     for k,v in self.dataset_config["traits"].items():
                         if value[0] == k:
                             trait_value = v
-                        else:
-                            trait_value = value[0] #--------------------------------------------> for the uknown values (e.g. Epic age; MHS gender)
+                            break
+                    if trait_value is None:
+                        trait_value = "UNK" #--------------------------------------------> for the uknown values (e.g. Epic age; MHS gender)
+                    
                     prompt = generate_prompt(trait=trait_value)
 
-                    input_data = generate_input_data(prompt=prompt)
-                    
-                    with open(f"./data_LaMP/{self.dataset_name}_{trait}_input.json", "w") as outfile: 
-                        json.dump(input_data, outfile)
+                    store_traits[trait] = prompt
+                store_prompts [user] = store_traits
+            generate_input_data (store_prompts)
+
 
         else:
             prompt = generate_prompt()
