@@ -51,9 +51,11 @@ class PrepareData ():
 
         def generate_input_data_named(store_prompts):
             trait_input_data = {}
-
+            list_ids = []
+            list_traits = []
             for user, traits_prompts in store_prompts.items():
                 for trait, prompt in traits_prompts.items():
+                    list_traits.append(trait)
                     if trait not in trait_input_data:
                         trait_input_data[trait] = {}  # Initialize for each trait if not already present
                     
@@ -80,6 +82,7 @@ class PrepareData ():
                                 formatted_text = (prompt + f" - {cntxt_name}: {cntxt} - {txt_name}: {txt}")
                             else:
                                 formatted_text = (prompt + f" {txt_name}: {txt}")
+                            list_ids.append(t)
 
                             input_data[u].append(
                                 {
@@ -95,10 +98,15 @@ class PrepareData ():
                 with open(output_file, "w") as outfile:
                     json.dump(input_data, outfile, indent=4)
             
-
+            print("instances test set: ",len(list_ids)//len(set(list_traits)))
+            print("unique texts test set: ",len(set(list_ids)))
+            print("number of traits: ", len(set(list_traits)))
+            
 
         def generate_input_data_unnamed(prompt):
             input_data = {}
+            list_ids = []
+
             for key in self.test_split.annotation.keys():
                 u, t = key
                 
@@ -116,20 +124,22 @@ class PrepareData ():
                         formatted_text = (prompt +f"- {cntxt_name}: {cntxt} - {txt_name}: {txt}")
                     else:
                         formatted_text = (prompt + f"{txt_name}: {txt}")
-
+                    list_ids.append(t)
 
                     input_data[u].append(
                         {"id":str(t), 
                         "input":formatted_text, 
                         "profile":profile.get(u, {})
                         })
-                
+            print("instances test set: ",len(list_ids))
+            print("unique texts test set: ",len(set(list_ids)))
             return input_data
 
 
 
         #create the profile based on the adapation set  
         profile = {}
+        list_ids_a  = []
         for key,value in self.adaptation_split.annotation.items():
             u = key[0]
             t = key[1]
@@ -147,6 +157,7 @@ class PrepareData ():
                     formatted_text = f"{cntxt_name}: {cntxt} {txt_name}: {txt}"
                 else:
                     formatted_text = f"{txt_name}: {txt}"
+                list_ids_a.append(t)
 
             for k,v in value.items():
                 profile[u].append({
@@ -154,7 +165,8 @@ class PrepareData ():
                     "comment": formatted_text,
                     k:v
                 })
-
+        print("instances adaptation set: ",len(list_ids_a))
+        print("unique texts adaptation set: ", len(set(list_ids_a)))
 
 
         # create the test set input 
@@ -179,7 +191,6 @@ class PrepareData ():
                     store_traits[trait] = prompt
                 store_prompts [user] = store_traits
             generate_input_data_named(store_prompts)
-
 
         else:
             prompt = generate_prompt()
