@@ -30,8 +30,8 @@ EPIC = {"dataset_name": "Epic",
                 	"GenZ":"a young person of generation Z",}
     	}
    	 
-DICES = {"dataset_name": "Dices",
-    	"txt_name": "response",
+DICES_prompts = {"dataset_name": "Dices",
+    	"txt_name": "reply",
     	"cntxt_name": "context",
     	"data_source": "conversations between a user and an AI-chatbot",
     	"task_adj": "harmful",
@@ -55,13 +55,13 @@ DICES = {"dataset_name": "Dices",
 #################################################
 
 text_only_template = {
-"prompt_zero": "instruction: You are provided in input (Input) a sentence ({txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj}. \
+"prompt_zero": "Instruction: You are provided in input (Input) a sentence ({txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj}. \
 Please provide in output (Output) a single label among the following array {labels}. \
 Input: ",
 
 
-"prompt_demographic": "You are {trait}.\
-instruction: You are provided in input (Input) a sentence ({txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj}. \
+"prompt_demographics": "You are {trait}. \
+Instruction: You are provided in input (Input) a sentence ({txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj}. \
 Please provide in output (Output) a single label among the following array {labels}.\
 Input: "
     }
@@ -79,14 +79,14 @@ BREXIT = {"dataset_name": "Brexit",
 
 
 MD_Agreement = {"dataset_name": "MD",
-    	"txt_name": "tweet",
+    	"txt_name": "text",
     	"data_source": "Twitter",
     	"task_adj": "offensive",
     	"labels": ["offensive", "not offensive"],
     	}
    	 
 
-MHS = {"dataset_name": "MHS",
+MHS_prompts = {"dataset_name": "MHS",
     	"txt_name": "text",
     	"data_source": "social media platforms",
     	"task_adj": "hateful",

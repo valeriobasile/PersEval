@@ -35,7 +35,7 @@ class PrepareData ():
                 format_args["cntxt_name"] = self.dataset_config["cntxt_name"]
             elif named and not context:
                 template_str = self.template["prompt_demographics"]
-                format_args["traits"] = trait
+                format_args["trait"] = trait
             elif not named and context:
                 template_str = self.template["prompt_zero"]
                 format_args["cntxt_name"] = self.dataset_config["cntxt_name"]
