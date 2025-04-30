@@ -87,7 +87,7 @@ MD_Agreement = {"dataset_name": "MD",
    	 
 
 MHS_prompts = {"dataset_name": "MHS",
-    	"txt_name": "text",
+    	"txt_name": "post",
     	"data_source": "social media platforms",
     	"task_adj": "hateful",
     	"labels": ["hateful", "not hateful"],

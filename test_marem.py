@@ -1,6 +1,6 @@
 from perseval.personalized_llms import PrepareData
 from perseval.data import *
-from perseval.prompts import EPIC, BREXIT, MHS, DICES, MD_Agreement
+from perseval.prompts import EPIC, BREXIT, MHS_prompts, DICES_prompts, MD_Agreement
 
 # options for label:
 # EPIC   -> ["irony"]
@@ -9,10 +9,10 @@ from perseval.prompts import EPIC, BREXIT, MHS, DICES, MD_Agreement
 # MD -> ["offensiveness"]
 
 
-perspectivist_dataset = Epic()
+perspectivist_dataset = MHS()
 perspectivist_dataset.get_splits(user_adaptation="test", extended=False, named=True)
 
-PrepareData(persp_dataset=perspectivist_dataset, dataset_config=EPIC, named=True, context=True)
+PrepareData(persp_dataset=perspectivist_dataset, dataset_config=MHS_prompts, named=True, context=False)
 
 print()
 print("Json ready")
