@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics import classification_report
 
 class Evaluator():
-    def __init__(self, prediction_path, test_set, label):
+    def __init__(self, prediction_path, test_set, label, ensembled=False):
         self.test_set = test_set
         self.predictions = pd.read_csv(prediction_path)
         self.label = label
@@ -25,8 +25,11 @@ class Evaluator():
         # Join the two datasets. 
         # Predictions do not need to be in the same order as in the test set
         self.ordered_pred = pd.merge(self.gold_annotations, self.predictions,  how='left', left_on=["user_id", "text_id"], right_on=["user_id", "text_id"])
-        self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]         
-
+        if not ensembled:
+            self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]#, "thoughts"]#, "prompts"]
+        else: 
+            self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]    
+        
 
     def global_metrics(self):
         print("\n----- Global metrics -----")
@@ -68,7 +71,7 @@ class Evaluator():
                         all_annotator_level_metrics[label] = [self.annotator_level_metrics_dic[annotator][label]]
                     else:
                         all_annotator_level_metrics[label].append(self.annotator_level_metrics_dic[annotator][label])
-        
+
         print("\nAnnotator-level macro average")
         self.annotator_based_macro_avg = {}        
         for label in all_annotator_level_metrics:
