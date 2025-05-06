@@ -32,7 +32,7 @@ evaluator = Evaluator(prediction_path=file_path,
 evaluator.global_metrics()
 evaluator.annotator_level_metrics()
 evaluator.text_level_metrics()
-
+evaluator.trait_level_metrics()
 
 
 

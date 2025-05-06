@@ -55,3 +55,15 @@ dataset_label ={
     "MHS":"hateful",
     "MD":"offensiveness"
 }
+
+
+label_map = {
+    "irony": {"iro":1, "not":0},
+    "irony_pred": {"irony":1, "not irony":0},
+    "hs": {"hate speech":1, "not hate speech":0},
+    "hs_pred": {"hate speech":1, "not hate speech":0},
+    "Q2_harmful_content_overall": {"Yes":2, "Unsure":1, "No":0},
+    "Q2_harmful_content_overall_pred": {"yes":2, "unsure":1, "no":0},
+    "hateful_pred": {"hateful":1, "not hateful":0},
+    "offensiveness_pred": {"offensive":1, "not offensive":0}
+}

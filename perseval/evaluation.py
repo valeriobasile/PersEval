@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics import classification_report
 
 class Evaluator():
-    def __init__(self, prediction_path, test_set, label, ensembled=False):
+    def __init__(self, prediction_path, test_set, label):
         self.test_set = test_set
         self.predictions = pd.read_csv(prediction_path)
         self.label = label
@@ -25,11 +25,7 @@ class Evaluator():
         # Join the two datasets. 
         # Predictions do not need to be in the same order as in the test set
         self.ordered_pred = pd.merge(self.gold_annotations, self.predictions,  how='left', left_on=["user_id", "text_id"], right_on=["user_id", "text_id"])
-        if not ensembled:
-            self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]#, "thoughts"]#, "prompts"]
-        else: 
-            self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]    
-        
+        self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]
 
     def global_metrics(self):
         print("\n----- Global metrics -----")

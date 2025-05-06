@@ -5,15 +5,12 @@ import random
 import numpy as np
 
 seed = 42
-# list_dices = ["/predictions_DICES_True_train_False_Gender.csv", "/predictions_DICES_True_train_False_Generation.csv"]
 
 def ensembled_predictions (folder_path, dataset, lamp=False):
     random.seed = (seed)
     data = {}
     if not lamp:
         for prediction_file in glob(f"{folder_path}/predictions_{dataset}_True_train_False_*.csv"):
-        # for file in list_dices:
-            prediction_file = folder_path+file
             perspective = prediction_file.replace(f"{folder_path}/predictions_{dataset}_True_train_False_", "").replace(".csv", "")
             with open(prediction_file, newline='', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
@@ -26,7 +23,7 @@ def ensembled_predictions (folder_path, dataset, lamp=False):
                         "label": row["label"]
                     })
     else: 
-        for prediction_file in glob(f"{folder_path}/{dataset}_*_True.csv"):
+        for prediction_file in glob(f"{folder_path}/edited_{dataset}_*_True.csv"):
             perspective = prediction_file.replace(f"{folder_path}/{dataset}_*_True.csv", "").replace(".csv", "")
             print(perspective)
             with open(prediction_file, newline='', encoding='utf-8') as f:
@@ -37,13 +34,13 @@ def ensembled_predictions (folder_path, dataset, lamp=False):
                     data[perspective].append({
                         "user_id": row["user_id"],
                         "text_id": row["text_id"],
-                        "label": row["label"]
+                        "label": row["predictions"]
                     })
 
 
     user_text_labels = defaultdict(list)
-    for category in data:
-        for item in data[category]:
+    for perspective in data:
+        for item in data[perspective]:
             user_text_labels[(item["user_id"], item["text_id"])].append(item["label"])
 
     ensemble_dict = []
