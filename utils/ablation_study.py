@@ -68,15 +68,7 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
 
     ensemble_dict = []
     for (user_id, text_id), labels in user_text_labels.items():
-        # label_counts = defaultdict(int) # Count the occurrences of each label
-        # for label in labels:
-        #     label_counts[label] += 1
-        
-        # majority_label = max(label_counts, key=label_counts.get)
-        # print(labels)
         majority_label = get_majority_label(labels)
-        # print(majority_label)
-        # print("----------")
         ensemble_dict.append({"user_id": user_id, "text_id": text_id, "pred": int(majority_label)})
 
     suffix = "_".join(list_traits)

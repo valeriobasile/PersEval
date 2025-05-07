@@ -1,6 +1,6 @@
 from perseval.evaluation import *
 from perseval.data import *
-from perseval.ensembling import ensembled_predictions
+from perseval.ensembling_OLD import ensembled_predictions
 
 # options for labels:
 # EPIC   -> ["irony"]
