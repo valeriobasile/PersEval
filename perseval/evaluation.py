@@ -27,6 +27,10 @@ class Evaluator():
         self.ordered_pred = pd.merge(self.gold_annotations, self.predictions,  how='left', left_on=["user_id", "text_id"], right_on=["user_id", "text_id"])
         self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]
 
+        if self.ordered_pred.isnull().values.any():
+            print("df had empty values")
+            self.ordered_pred = self.ordered_pred.fillna(-1)
+        
     def global_metrics(self):
         print("\n----- Global metrics -----")
         self.global_metrics_dic = classification_report(

@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 import csv
 from glob import glob 
 import random
@@ -6,15 +6,23 @@ import numpy as np
 import os 
 from itertools import combinations
 import contextlib
+import re 
+from perseval.evaluation import * 
 
-from perseval.evaluation import *
 
 
-seed = 42
+def get_majority_label(labels):
+    counts = Counter(labels)
+    max_count = max(counts.values())
+    tied = [label for label, count in counts.items() if count == max_count]
+    return random.choice(tied) if len(tied) > 1 else tied[0]
 
-def ensembled_ablation (folder_path, dataset, list_traits, lamp=False):
-    random.seed = (seed)
+def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
+    random.seed(seed)
     data = {}
+
+    tie_count = 0 
+
     if not lamp:
         for trait in list_traits: 
             for prediction_file in glob(f"{folder_path}/predictions_{dataset}_True_train_False_{trait}.csv"):
@@ -25,10 +33,13 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False):
                     data[perspective] = []  # Store multiple rows per perspective
 
                     for row in reader:
+                        match = re.search(r'-?\d+',row["label"])
+                        predclean = int(match.group())
+
                         data[perspective].append({
                             "user_id": row["user_id"],
                             "text_id": row["text_id"],
-                            "pred": row["label"]
+                            "pred": predclean
                         })
     else: 
         for trait in list_traits:
@@ -40,10 +51,13 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False):
                     data[perspective] = []  # Store multiple rows per perspective
 
                     for row in reader:
+                        match = re.search(r'\d+',row["predictions"])
+                        predclean = int(match.group())
+                        
                         data[perspective].append({
                             "user_id": row["user_id"],
                             "text_id": row["text_id"],
-                            "pred": row["predictions"]
+                            "pred": predclean
                         })
 
 
@@ -54,12 +68,16 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False):
 
     ensemble_dict = []
     for (user_id, text_id), labels in user_text_labels.items():
-        label_counts = defaultdict(int) # Count the occurrences of each label
-        for label in labels:
-            label_counts[label] += 1
+        # label_counts = defaultdict(int) # Count the occurrences of each label
+        # for label in labels:
+        #     label_counts[label] += 1
         
-        majority_label = max(label_counts, key=label_counts.get)
-        ensemble_dict.append({"user_id": user_id, "text_id": text_id, "pred": majority_label})
+        # majority_label = max(label_counts, key=label_counts.get)
+        # print(labels)
+        majority_label = get_majority_label(labels)
+        # print(majority_label)
+        # print("----------")
+        ensemble_dict.append({"user_id": user_id, "text_id": text_id, "pred": int(majority_label)})
 
     suffix = "_".join(list_traits)
     dir_ablation = f"{folder_path}/ablation_files"

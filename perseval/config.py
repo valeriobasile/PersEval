@@ -5,7 +5,7 @@ dataset_specific_splits = {
         "user_based_split_percentage" : 0.2,
         "text_based_split_percentage" : 0.05,
     },
-    "DICES-350": {
+    "DICES": {
         "user_based_split_percentage" : 0.2,
         "text_based_split_percentage" : 0.05,
     },
@@ -50,7 +50,7 @@ prediction_dir = "predictions"
 
 dataset_label ={
     "EPIC": "irony",
-    "DICES-350":"degree_of_harm",
+    "DICES":"Q2_harmful_content_overall",
     "BREXIT":"hs",
     "MHS":"hateful",
     "MD":"offensiveness"
