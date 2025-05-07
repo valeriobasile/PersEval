@@ -1,0 +1,189 @@
+
+----- Global metrics -----
+              precision    recall  f1-score   support
+
+        -1.0      .000     .000     .000         0
+         .0      .853     .672     .751     11662
+         1.0      .542     .769     .636      5879
+
+    accuracy                          .704     17541
+   macro avg      .465     .480     .462     17541
+weighted avg      .748     .704     .713     17541
+
+
+----- Annotator-level metrics -----
+
+Annotator-level macro average
+0, precision --- 0.840
+0, recall --- 0.672
+0, f1-score --- 0.722
+0, support --- 7.330
+1, precision --- 0.553
+1, recall --- 0.777
+1, f1-score --- 0.605
+1, support --- 3.948
+accuracy --- 0.701
+macro avg, precision --- 0.685
+macro avg, recall --- 0.700
+macro avg, f1-score --- 0.647
+macro avg, support --- 11.088
+weighted avg, precision --- 0.805
+weighted avg, recall --- 0.701
+weighted avg, f1-score --- 0.716
+weighted avg, support --- 11.088
+0.0, precision --- 0.914
+0.0, recall --- 0.588
+0.0, f1-score --- 0.704
+0.0, support --- 8.355
+1.0, precision --- 0.043
+1.0, recall --- 0.022
+1.0, f1-score --- 0.028
+1.0, support --- 0.301
+-1.0, precision --- 0.000
+-1.0, recall --- 0.000
+-1.0, f1-score --- 0.000
+-1.0, support --- 0.000
+
+----- Text-level metrics -----
+
+Text-level macro average
+1, precision --- 0.901
+1, recall --- 0.943
+1, f1-score --- 0.915
+1, support --- 1.116
+accuracy --- 0.702
+macro avg, precision --- 0.693
+macro avg, recall --- 0.697
+macro avg, f1-score --- 0.693
+macro avg, support --- 1.199
+weighted avg, precision --- 0.704
+weighted avg, recall --- 0.702
+weighted avg, f1-score --- 0.700
+weighted avg, support --- 1.199
+0, precision --- 0.928
+0, recall --- 0.940
+0, f1-score --- 0.932
+0, support --- 1.157
+0.0, precision --- 0.051
+0.0, recall --- 0.025
+0.0, f1-score --- 0.034
+0.0, support --- 0.865
+1.0, precision --- 0.021
+1.0, recall --- 0.011
+1.0, f1-score --- 0.014
+1.0, support --- 0.288
+-1.0, precision --- 0.000
+-1.0, recall --- 0.000
+-1.0, f1-score --- 0.000
+-1.0, support --- 0.000
+
+----- Trait-level metrics -----
+
+Trait-level macro averages
+
+--- Education ---
+0, precision --- 0.853
+0, recall --- 0.669
+0, f1-score --- 0.750
+0, support --- 3886.000
+1, precision --- 0.546
+1, recall --- 0.774
+1, f1-score --- 0.640
+1, support --- 1957.667
+accuracy --- 0.705
+macro avg, precision --- 0.699
+macro avg, recall --- 0.722
+macro avg, f1-score --- 0.695
+macro avg, support --- 5843.667
+weighted avg, precision --- 0.749
+weighted avg, recall --- 0.705
+weighted avg, f1-score --- 0.713
+weighted avg, support --- 5843.667
+
+--- Gender ---
+0, precision --- 0.833
+0, recall --- 0.717
+0, f1-score --- 0.760
+0, support --- 2904.750
+1, precision --- 0.508
+1, recall --- 0.675
+1, f1-score --- 0.552
+1, support --- 1460.500
+accuracy --- 0.679
+macro avg, precision --- 0.631
+macro avg, recall --- 0.639
+macro avg, f1-score --- 0.613
+macro avg, support --- 3508.200
+weighted avg, precision --- 0.732
+weighted avg, recall --- 0.679
+weighted avg, f1-score --- 0.687
+weighted avg, support --- 3508.200
+-1.0, precision --- 0.000
+-1.0, recall --- 0.000
+-1.0, f1-score --- 0.000
+-1.0, support --- 0.000
+0.0, precision --- 0.744
+0.0, recall --- 0.674
+0.0, f1-score --- 0.707
+0.0, support --- 43.000
+1.0, precision --- 0.677
+1.0, recall --- 0.568
+1.0, f1-score --- 0.618
+1.0, support --- 37.000
+
+--- Ideology ---
+0, precision --- 0.846
+0, recall --- 0.674
+0, f1-score --- 0.750
+0, support --- 3886.000
+1, precision --- 0.547
+1, recall --- 0.762
+1, f1-score --- 0.637
+1, support --- 1957.667
+accuracy --- 0.704
+macro avg, precision --- 0.697
+macro avg, recall --- 0.718
+macro avg, f1-score --- 0.693
+macro avg, support --- 5843.667
+weighted avg, precision --- 0.745
+weighted avg, recall --- 0.704
+weighted avg, f1-score --- 0.712
+weighted avg, support --- 5843.667
+
+--- Income ---
+0, precision --- 0.853
+0, recall --- 0.673
+0, f1-score --- 0.752
+0, support --- 5827.000
+1, precision --- 0.542
+1, recall --- 0.769
+1, f1-score --- 0.636
+1, support --- 2928.500
+accuracy --- 0.705
+macro avg, precision --- 0.697
+macro avg, recall --- 0.721
+macro avg, f1-score --- 0.694
+macro avg, support --- 8755.500
+weighted avg, precision --- 0.749
+weighted avg, recall --- 0.705
+weighted avg, f1-score --- 0.713
+weighted avg, support --- 8755.500
+
+--- Age ---
+0, precision --- 0.853
+0, recall --- 0.675
+0, f1-score --- 0.753
+0, support --- 2914.500
+1, precision --- 0.556
+1, recall --- 0.783
+1, f1-score --- 0.648
+1, support --- 1468.250
+accuracy --- 0.711
+macro avg, precision --- 0.705
+macro avg, recall --- 0.729
+macro avg, f1-score --- 0.700
+macro avg, support --- 4382.750
+weighted avg, precision --- 0.756
+weighted avg, recall --- 0.711
+weighted avg, f1-score --- 0.719
+weighted avg, support --- 4382.750
