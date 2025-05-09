@@ -1,0 +1,30 @@
+Gender (17541, 4)
+Filtered Gender (3016, 9)
+Number of texts where the prediction changed:  234
+Number of possible traits:  5
+Normalized count of label change:  0.07758620689655173
+
+Age (17531, 4)
+Filtered Age (3458, 9)
+Number of texts where the prediction changed:  257
+Number of possible traits:  4
+Normalized count of label change:  0.07432041642567959
+
+Education (17531, 4)
+Filtered Education (3291, 9)
+Number of texts where the prediction changed:  229
+Number of possible traits:  3
+Normalized count of label change:  0.0695837131570951
+
+Income (17511, 4)
+Filtered Income (3098, 9)
+Number of texts where the prediction changed:  260
+Number of possible traits:  2
+Normalized count of label change:  0.08392511297611362
+
+Ideology (17531, 4)
+Filtered Ideology (3489, 9)
+Number of texts where the prediction changed:  266
+Number of possible traits:  3
+Normalized count of label change:  0.0762396102034967
+

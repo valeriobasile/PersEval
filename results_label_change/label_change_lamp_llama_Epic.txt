@@ -1,0 +1,18 @@
+Gender (2544, 4)
+Filtered Gender (705, 7)
+Number of texts where the prediction changed:  86
+Number of possible traits:  2
+Normalized count of label change:  0.12198581560283688
+
+Generation (2544, 4)
+Filtered Generation (996, 7)
+Number of texts where the prediction changed:  117
+Number of possible traits:  4
+Normalized count of label change:  0.11746987951807229
+
+Nationality (2544, 4)
+Filtered Nationality (1094, 7)
+Number of texts where the prediction changed:  90
+Number of possible traits:  5
+Normalized count of label change:  0.08226691042047532
+

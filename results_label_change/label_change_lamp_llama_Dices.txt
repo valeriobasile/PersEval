@@ -1,0 +1,24 @@
+Gender (2640, 4)
+Filtered Gender (2640, 8)
+Number of texts where the prediction changed:  11
+Number of possible traits:  2
+Normalized count of label change:  0.004166666666666667
+
+Generation (2640, 4)
+Filtered Generation (2640, 8)
+Number of texts where the prediction changed:  13
+Number of possible traits:  3
+Normalized count of label change:  0.004924242424242424
+
+Education (2640, 4)
+Filtered Education (2640, 8)
+Number of texts where the prediction changed:  19
+Number of possible traits:  3
+Normalized count of label change:  0.007196969696969697
+
+Race (2640, 4)
+Filtered Race (2640, 8)
+Number of texts where the prediction changed:  21
+Number of possible traits:  5
+Normalized count of label change:  0.007954545454545454
+
