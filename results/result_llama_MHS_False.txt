@@ -1,0 +1,66 @@
+
+----- Global metrics -----
+              precision    recall  f1-score   support
+
+          -1      .000     .000     .000         0
+           0      .867     .539     .665     11662
+           1      .489     .755     .593      5879
+
+    accuracy                          .611     17541
+   macro avg      .452     .431     .419     17541
+weighted avg      .740     .611     .641     17541
+
+
+----- Annotator-level metrics -----
+
+Annotator-level macro average
+-1, precision --- 0.000
+-1, recall --- 0.000
+-1, f1-score --- 0.000
+-1, support --- 0.000
+0, precision --- 0.853
+0, recall --- 0.541
+0, f1-score --- 0.634
+0, support --- 7.386
+1, precision --- 0.485
+1, recall --- 0.728
+1, f1-score --- 0.543
+1, support --- 3.726
+accuracy --- 0.609
+macro avg, precision --- 0.552
+macro avg, recall --- 0.530
+macro avg, f1-score --- 0.489
+macro avg, support --- 11.088
+weighted avg, precision --- 0.800
+weighted avg, recall --- 0.609
+weighted avg, f1-score --- 0.645
+weighted avg, support --- 11.088
+
+----- Text-level metrics -----
+
+Text-level macro average
+1, precision --- 0.416
+1, recall --- 0.443
+1, f1-score --- 0.425
+1, support --- 0.658
+accuracy --- 0.610
+macro avg, precision --- 0.599
+macro avg, recall --- 0.610
+macro avg, f1-score --- 0.603
+macro avg, support --- 1.199
+weighted avg, precision --- 0.599
+weighted avg, recall --- 0.610
+weighted avg, f1-score --- 0.603
+weighted avg, support --- 1.199
+0, precision --- 0.483
+0, recall --- 0.492
+0, f1-score --- 0.486
+0, support --- 1.083
+-1, precision --- 0.000
+-1, recall --- 0.000
+-1, f1-score --- 0.000
+-1, support --- 0.000
+
+----- Trait-level metrics -----
+
+Trait-level macro averages

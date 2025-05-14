@@ -6,6 +6,7 @@ class Evaluator():
     def __init__(self, prediction_path, test_set, label):
         self.test_set = test_set
         self.predictions = pd.read_csv(prediction_path)
+        self.predictions = self.predictions[["user_id", "text_id", "label"]]
         self.label = label
         
         user_ids, text_ids, labels = [], [], []
@@ -15,7 +16,7 @@ class Evaluator():
             labels.append(test_set.annotation[annotation[0], annotation[1]][label])
         self.gold_annotations = pd.DataFrame({"user_id":user_ids, 
                                               "text_id": text_ids, 
-                                              "label":labels})
+                                              "gold":labels})
         
         # Assert predictions do not contain duplicates
         assert len(self.predictions) == len(self.predictions[["user_id", "text_id"]].drop_duplicates()), "The prediction file contains duplicates"

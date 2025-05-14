@@ -16,6 +16,7 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
         predictions = pd.read_csv(f"./predictions_{model}/predictions_{dataset}_True_train_False_{trait}.csv")
         predictions = predictions[["user_id", "text_id", "label"]]
         predictions = predictions.rename(columns={"label":"pred"})
+        predictions["pred"] = predictions["pred"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
 
         # Assert predictions do not contain duplicates
         assert len(predictions) == len(predictions[["user_id", "text_id"]].drop_duplicates()), "The prediction file contains duplicates"
@@ -26,6 +27,8 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
     
     else: 
         predictions = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
+        predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
+
         df = predictions.rename(columns={"predictions": "pred"})
     
     return df 

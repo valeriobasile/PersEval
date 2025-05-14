@@ -1,0 +1,45 @@
+Gender (2640, 4)
+Filtered Gender (2640, 8)
+All labels: [np.int64(0), np.int64(1), np.int64(2)]
+====JSD====
+Woman: 0.46039333976062397
+Man: 0.429208142664528
+==================================================
+
+
+
+Generation (2640, 4)
+Filtered Generation (2640, 8)
+All labels: [np.int64(0), np.int64(1), np.int64(2)]
+====JSD====
+millenial: 0.5305995559457515
+gen z: 0.5021809651345371
+gen x+: 0.5060619448650521
+==================================================
+
+
+
+Education (2640, 4)
+Filtered Education (2640, 8)
+All labels: [np.int64(0), np.int64(1), np.int64(2)]
+====JSD====
+College degree or higher: 0.4157794291658476
+High school or below: 0.43217034742167776
+Other: 0.40336713781953465
+==================================================
+
+
+
+Race (2640, 4)
+Filtered Race (2640, 8)
+All labels: [np.int64(0), np.int64(1), np.int64(2)]
+====JSD====
+Black/African American: 0.39338359098028347
+LatinX, Latino, Hispanic or Spanish Origin: 0.4534847543588224
+Asian/Asian subcontinent: 0.46273815820663794
+White: 0.4125319991132631
+Multiracial: 0.4081967819524811
+==================================================
+
+
+

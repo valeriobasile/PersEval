@@ -5,10 +5,8 @@ import random
 import numpy as np
 import os 
 from itertools import combinations
-import contextlib
 import re 
 from perseval.evaluation import * 
-
 
 
 def get_majority_label(labels):
@@ -17,7 +15,7 @@ def get_majority_label(labels):
     tied = [label for label, count in counts.items() if count == max_count]
     return random.choice(tied) if len(tied) > 1 else tied[0]
 
-def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
+def ensembled_prediction (folder_path, dataset, list_traits, lamp=False, seed=42):
     random.seed(seed)
     data = {}
     if not lamp:
@@ -69,10 +67,7 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
         ensemble_dict.append({"user_id": user_id, "text_id": text_id, "pred": int(majority_label)})
 
     suffix = "_".join(list_traits)
-    dir_ablation = f"{folder_path}/ablation_files"
-    if not os.path.exists(dir_ablation):
-        os.mkdir(dir_ablation)
-    file_path = f"{dir_ablation}/ensembled_predictions_{dataset}_{suffix}.csv"
+    file_path = f"{folder_path}/ensembled_predictions_{dataset}_{suffix}.csv"
 
 
     with open(file_path, mode='w', newline='') as file:
@@ -83,43 +78,15 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
     return file_path
 
 
-
-def dict_combinations (datasets):
-    d_combinations = {}
-
-    for dataset, trait in datasets.items():
-        d_combinations[dataset] = {}  
-        for r in range(1,len(trait)+1):
-            key_name = f"{r}_traits"
-            trait_combination = list(combinations(trait,r))
-            d_combinations[dataset][key_name] = trait_combination
-
-    return d_combinations
-
-
-
-def results_ablation (dataset, models, d_combinations, test_set, label, lamp=False):
-    for model in models:
-        folder_path = f"./predictions_{model}"
-        print("="*80)
-        print (model)
-        print("="*80)
-        for k,v in d_combinations.items():
-            if k == dataset:
-                for r, combs in v.items():
-                    for comb in combs:
-                        list_traits = list(comb)
-                        print(list_traits)
-                        file_path = ensembled_ablation(folder_path, dataset, list_traits, lamp=lamp)
-                        print("-"*20)
-                        suffix = "_".join(list_traits)
-                        output_file = f"./results_ablation/{model}/classification_report_{dataset}_{model}_{suffix}.txt"
-                        evaluator = Evaluator(prediction_path=file_path,
-                            test_set=test_set,
-                            label=label)
-                        with open(output_file, "w") as f:
-                            with contextlib.redirect_stdout(f):
-                                evaluator.global_metrics()
-                                evaluator.annotator_level_metrics()
-                                evaluator.text_level_metrics()
-                                evaluator.trait_level_metrics()
+#check
+# df_gender = pd.read_csv(f"{prediction_dir}/predictions_{dataset}_True_train_False_Gender.csv")
+# df_generation = pd.read_csv(f"{prediction_dir}/predictions_{dataset}_True_train_False_Generation.csv")
+# df_nationality = pd.read_csv(f"{prediction_dir}/predictions_{dataset}_True_train_False_Nationality.csv")
+# df_gender = df_gender.astype(str)
+# df_generation= df_generation.astype(str)
+# df_nationality = df_nationality.astype(str)
+# df = pd.DataFrame.from_dict(ensemble_dict)
+# df_check = df.merge(df_gender[["user_id", "text_id", "label"]], on=["user_id", "text_id"], suffixes=("", "_gender"))
+# df_check = df_check.merge(df_generation[["user_id", "text_id", "label"]], on=["user_id", "text_id"], suffixes=("","_generation"))
+# df_check = df_check.merge(df_nationality[["user_id", "text_id", "label"]], on=["user_id", "text_id"], suffixes=("", "_nationality"))
+# df_check.to_csv("check.csv")

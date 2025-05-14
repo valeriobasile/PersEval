@@ -18,7 +18,7 @@ Normalized count of label change:  0.005681818181818182
 
 Race (2640, 4)
 Filtered Race (2640, 8)
-Number of texts where the prediction changed:  27
+Number of texts where the prediction changed:  26
 Number of possible traits:  5
-Normalized count of label change:  0.010227272727272727
+Normalized count of label change:  0.009848484848484848
 
