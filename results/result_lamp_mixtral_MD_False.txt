@@ -1,0 +1,78 @@
+
+----- Global metrics -----
+              precision    recall  f1-score   support
+
+        -1.0      .000     .000     .000         0
+         .0      .741     .896     .811      6633
+         1.0      .695     .430     .531      3650
+
+    accuracy                          .730     10283
+   macro avg      .479     .442     .447     10283
+weighted avg      .725     .730     .711     10283
+
+
+----- Annotator-level metrics -----
+
+Annotator-level macro average
+0, precision --- 0.708
+0, recall --- 0.919
+0, f1-score --- 0.778
+0, support --- 36.568
+1, precision --- 0.584
+1, recall --- 0.346
+1, f1-score --- 0.398
+1, support --- 18.972
+accuracy --- 0.705
+macro avg, precision --- 0.635
+macro avg, recall --- 0.622
+macro avg, f1-score --- 0.582
+macro avg, support --- 63.086
+weighted avg, precision --- 0.743
+weighted avg, recall --- 0.705
+weighted avg, f1-score --- 0.680
+weighted avg, support --- 63.086
+-1.0, precision --- 0.000
+-1.0, recall --- 0.000
+-1.0, f1-score --- 0.000
+-1.0, support --- 0.000
+0.0, precision --- 0.756
+0.0, recall --- 0.721
+0.0, f1-score --- 0.725
+0.0, support --- 81.400
+1.0, precision --- 0.325
+1.0, recall --- 0.208
+1.0, f1-score --- 0.231
+1.0, support --- 65.000
+
+----- Text-level metrics -----
+
+Text-level macro average
+0, precision --- 0.903
+0, recall --- 0.956
+0, f1-score --- 0.920
+0, support --- 1.320
+accuracy --- 0.729
+macro avg, precision --- 0.707
+macro avg, recall --- 0.720
+macro avg, f1-score --- 0.708
+macro avg, support --- 1.443
+weighted avg, precision --- 0.725
+weighted avg, recall --- 0.729
+weighted avg, f1-score --- 0.721
+weighted avg, support --- 1.443
+1, precision --- 0.633
+1, recall --- 0.668
+1, f1-score --- 0.643
+1, support --- 1.200
+0.0, precision --- 0.062
+0.0, recall --- 0.032
+0.0, f1-score --- 0.042
+0.0, support --- 0.348
+1.0, precision --- 0.076
+1.0, recall --- 0.038
+1.0, f1-score --- 0.051
+1.0, support --- 0.959
+-1.0, precision --- 0.000
+-1.0, recall --- 0.000
+-1.0, f1-score --- 0.000
+-1.0, support --- 0.000

@@ -6,7 +6,12 @@ class Evaluator():
     def __init__(self, prediction_path, test_set, label):
         self.test_set = test_set
         self.predictions = pd.read_csv(prediction_path)
-        self.predictions = self.predictions[["user_id", "text_id", "label"]]
+        self.predictions = self.predictions[["user_id", "text_id", "predictions"]]
+
+        # self.predictions['predictions'] = self.predictions['predictions'].astype(str)
+        # self.predictions['predictions'] = self.predictions['predictions'].apply(lambda x: x if x in ["0", "1", "-1"] else "-1")
+        # self.predictions['predictions'] = self.predictions['predictions'].astype(int)
+
         self.label = label
         
         user_ids, text_ids, labels = [], [], []
