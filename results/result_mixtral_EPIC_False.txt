@@ -60,7 +60,3 @@ weighted avg, support --- 1.383
 -1, recall --- 0.000
 -1, f1-score --- 0.000
 -1, support --- 0.000
-
------ Trait-level metrics -----
-
-Trait-level macro averages

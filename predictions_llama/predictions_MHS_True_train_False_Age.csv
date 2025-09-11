@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 9750,23643,0,"{not hateful} 
 
 This post seems to be a positive and uplifting message about the author's identity and their contributions to their community. The tone is proud and supportive, and there is no language or sentiment that could be considered hateful.","You are a person of generation Y.

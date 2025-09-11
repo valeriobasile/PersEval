@@ -1,4 +1,4 @@
-user_id,text_id,pred
+user_id,text_id,predictions
 9750,23643,0
 2171,29527,1
 10173,23016,-1

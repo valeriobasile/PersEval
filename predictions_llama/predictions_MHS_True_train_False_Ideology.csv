@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 9750,23643,0,"{not hateful} 
 
 This post is not hateful because it expresses a positive sentiment about being part of the LGBTQ+ community and highlights the individual's efforts to help others within their community. The tone is uplifting and proud, rather than divisive or hurtful.","You are a liberal.

@@ -30,13 +30,14 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
                     data[perspective] = []  # Store multiple rows per perspective
 
                     for row in reader:
-                        match = re.search(r'-?\d+',row["label"])
+                        prediction = str(row["predictions"])
+                        match = re.search(r'-?\d+',prediction)
                         predclean = int(match.group())
 
                         data[perspective].append({
                             "user_id": row["user_id"],
                             "text_id": row["text_id"],
-                            "pred": predclean
+                            "predictions": predclean
                         })
     else: 
         for trait in list_traits:
@@ -48,25 +49,26 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
                     data[perspective] = []  # Store multiple rows per perspective
 
                     for row in reader:
-                        match = re.search(r'\d+',row["predictions"])
+                        prediction = str(row["predictions"])
+                        match = re.search(r'-?\d+',prediction)
                         predclean = int(match.group())
                         
                         data[perspective].append({
                             "user_id": row["user_id"],
                             "text_id": row["text_id"],
-                            "pred": predclean
+                            "predictions": predclean
                         })
 
 
     user_text_labels = defaultdict(list)
     for perspective in data:
         for item in data[perspective]:
-            user_text_labels[(item["user_id"], item["text_id"])].append(item["pred"])
+            user_text_labels[(item["user_id"], item["text_id"])].append(item["predictions"])
 
     ensemble_dict = []
     for (user_id, text_id), labels in user_text_labels.items():
         majority_label = get_majority_label(labels)
-        ensemble_dict.append({"user_id": user_id, "text_id": text_id, "pred": int(majority_label)})
+        ensemble_dict.append({"user_id": user_id, "text_id": text_id, "predictions": int(majority_label)})
 
     suffix = "_".join(list_traits)
     dir_ablation = f"{folder_path}/ablation_files"
@@ -76,7 +78,7 @@ def ensembled_ablation (folder_path, dataset, list_traits, lamp=False, seed=42):
 
 
     with open(file_path, mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=["user_id", "text_id", "pred"])
+        writer = csv.DictWriter(file, fieldnames=["user_id", "text_id", "predictions"])
         writer.writeheader()
         writer.writerows(ensemble_dict)
 

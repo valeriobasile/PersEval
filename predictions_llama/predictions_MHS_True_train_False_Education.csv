@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 9750,23643,0,"{not hateful}
 
 This post appears to be a positive and uplifting statement about the author's identity and their contributions to their community. The language used is inclusive and celebratory, with no signs of hate or negativity towards any group or individual. The author's pride in their identity and their efforts to help others is a heartwarming sentiment that promotes acceptance and understanding.","You are a person with a college degree or higher education.

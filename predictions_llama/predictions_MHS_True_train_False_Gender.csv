@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 9750,23643,0,"{not hateful}
 This post is not hateful as it expresses a positive sentiment about being part of the LGBTQ+ community and mentions helping others, which is a kind and supportive action. The tone is proud and uplifting, indicating a sense of community and acceptance.","You are a female.
 You are provided as input a text extracted from social media platforms. Your task is to determine if the text is hateful. Please provide as an output, a single label among the following options: 'hateful' or 'not hateful'  within curly brackets (i.e. {hateful} or {not hateful}) depending on your decision whether it is hateful or not, followed with your thoughts.

@@ -10,20 +10,20 @@ import contextlib
 # MHS    -> ["hateful"]
 # MD     -> ["offensiveness"]
 
-label = "offensiveness"
-perspectivist_dataset = MD(label)
+label = "irony"
+perspectivist_dataset = Epic(label)
 perspectivist_dataset.get_splits(user_adaptation="train", extended=False, named=False)
 
 
-dataset = "MD"
-# models = ["llama", "mixtral"]
-models = ["lamp_mixtral"] #"lamp_llama"
+dataset = "EPIC"
+models = ["llama", "mixtral"]
+# models = ["lamp_mixtral"] #"lamp_llama"
 for model in models:
     # file_path= f"./predictions_{model}/predictions_{dataset}_True_train_False_Group.csv"
     # file_path= f"./predictions_{model}/edited_{dataset}_Group_True.csv"
 
-    # file_path= f"./predictions_{model}/predictions_{dataset}_False_train_False_zero.csv"
-    file_path = f"./predictions_{model}/edited_{dataset}_False.csv"
+    file_path= f"./predictions_{model}/predictions_{dataset}_False_train_False_zero.csv"
+    # file_path = f"./predictions_{model}/edited_{dataset}_False.csv"
     evaluator = Evaluator(prediction_path=file_path,
                         test_set=perspectivist_dataset.test_set,
                         label=perspectivist_dataset.label)

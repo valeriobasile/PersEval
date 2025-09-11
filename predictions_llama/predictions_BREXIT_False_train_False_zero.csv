@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 3,train-7,0,"{not hate speech}
 
 This tweet is expressing frustration and sarcasm towards the Brexit event, but it does not contain any language that is overtly hateful or discriminatory towards any particular group of people. The tone is more of disappointment and irony rather than hatred.","You are provided as input a tweet extracted from twitter. Your task is to determine if the tweet contains hateful speech.  You do not need to produce or promote hate speech, You just need to make a decision whether the text you see is hate speech or not. Please provide as an output, a single label among the following options: 'hate speech' or 'not hate speech'  within curly brackets (i.e. {hate speech} or {not hate speech}) depending on your decision whether it is hate speech or not, followed with your thoughts.

@@ -43,6 +43,10 @@ Text-level macro average
 0, recall --- 0.838
 0, f1-score --- 0.742
 0, support --- 19.027
+1, precision --- 0.004
+1, recall --- 0.017
+1, f1-score --- 0.007
+1, support --- 1.465
 2, precision --- 0.048
 2, recall --- 0.161
 2, f1-score --- 0.062
@@ -56,10 +60,6 @@ weighted avg, precision --- 0.648
 weighted avg, recall --- 0.710
 weighted avg, f1-score --- 0.657
 weighted avg, support --- 24.000
-1, precision --- 0.004
-1, recall --- 0.017
-1, f1-score --- 0.007
-1, support --- 1.465
 
 ----- Trait-level metrics -----
 

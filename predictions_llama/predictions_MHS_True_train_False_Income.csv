@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 9750,23643,0,"{not hateful}
 This post seems to be a positive and uplifting message about the author's identity and their contributions to their community. There is no language or tone that suggests hatred or negativity towards any group or individual. The use of the phrase ""i feel proud"" also indicates a sense of self-acceptance and confidence, which is a far cry from hateful language.","You are a person with a less than 50k annual income.
 You are provided as input a text extracted from social media platforms. Your task is to determine if the text is hateful. Please provide as an output, a single label among the following options: 'hateful' or 'not hateful'  within curly brackets (i.e. {hateful} or {not hateful}) depending on your decision whether it is hateful or not, followed with your thoughts.

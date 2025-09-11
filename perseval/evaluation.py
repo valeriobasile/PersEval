@@ -7,11 +7,6 @@ class Evaluator():
         self.test_set = test_set
         self.predictions = pd.read_csv(prediction_path)
         self.predictions = self.predictions[["user_id", "text_id", "predictions"]]
-
-        # self.predictions['predictions'] = self.predictions['predictions'].astype(str)
-        # self.predictions['predictions'] = self.predictions['predictions'].apply(lambda x: x if x in ["0", "1", "-1"] else "-1")
-        # self.predictions['predictions'] = self.predictions['predictions'].astype(int)
-
         self.label = label
         
         user_ids, text_ids, labels = [], [], []
@@ -33,9 +28,15 @@ class Evaluator():
         self.ordered_pred = pd.merge(self.gold_annotations, self.predictions,  how='left', left_on=["user_id", "text_id"], right_on=["user_id", "text_id"])
         self.ordered_pred.columns = ["user_id", "text_id", "gold", "predictions"]
 
-        if self.ordered_pred.isnull().values.any():
-            print("df had empty values")
+        if self.ordered_pred["predictions"].isnull().any():
+            nan_rows = self.ordered_pred.loc[self.ordered_pred["predictions"].isnull(), ["user_id", "text_id"]]
+            nan_users = nan_rows["user_id"].unique()
+            
+            print(f"User {list(nan_users)} did not provide target demographic information.")
             self.ordered_pred = self.ordered_pred.fillna(-1)
+
+
+            
         
     def global_metrics(self):
         print("\n----- Global metrics -----")

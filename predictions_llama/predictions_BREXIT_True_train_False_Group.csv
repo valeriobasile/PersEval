@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 3,train-7,0,"{not hate speech}
 
 This tweet appears to be a commentary on the Brexit event, comparing it to a terrorist attack. However, the tone is more likely to be one of frustration, disappointment, or sarcasm rather than hatred. The language used is not overtly aggressive or discriminatory, and the comparison to a terrorist attack seems to be a metaphorical expression of the severity of the event rather than a literal equivalence.","You are a researcher.

@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 6128350698321225808,7929378450804902186,1,"{irony}
 This reply is ironic because the person is pretending to be oblivious to the insult, but in reality, they're acknowledging it and making a joke out of it. The phrase ""What did she/he say?"" is a common response when someone is trying to downplay or deflect an insult, but in this case, it's being used to sarcastically imply that the original comment was indeed an insult. It's a classic example of irony, where the words used have the opposite meaning of","You are an older person of generation X.
 You are provided as input a pair of sentences extracted from social media conversations. Your task is to determine if the Reply is Ironic. Please provide as an output, a single label among the following options: 'irony' or 'not irony'  within curly brackets (i.e. {irony} or {not irony}), followed with your thoughts.

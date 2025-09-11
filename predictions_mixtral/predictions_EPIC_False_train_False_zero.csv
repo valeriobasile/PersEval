@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 6128350698321225808,7929378450804902186,1,"<s> [INST] You are provided as input a pair of sentences extracted from social media conversations. Your task is to determine if the Reply is Ironic. Please provide as an output, a single label among the following options: 'irony' or 'not irony'  within curly brackets (i.e. {irony} or {not irony}), followed with your thoughts.
 Input:
 post:
