@@ -18,9 +18,8 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
             
 
         predictions = pd.read_csv(f"./predictions_{model}/predictions_{dataset}_True_train_False_{trait}.csv")
-        predictions = predictions[["user_id", "text_id", "label"]]
-        predictions = predictions.rename(columns={"label":"pred"})
-        predictions["pred"] = predictions["pred"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
+        predictions = predictions[["user_id", "text_id", "predictions"]]
+        predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
 
         # Assert predictions do not contain duplicates
         assert len(predictions) == len(predictions[["user_id", "text_id"]].drop_duplicates()), "The prediction file contains duplicates"
@@ -33,7 +32,6 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
         predictions = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
         predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
 
-        df = predictions.rename(columns={"predictions": "pred"})
     
     return df 
 
@@ -53,29 +51,29 @@ def compute_CE (dataset, dict_datasets, test_set, label, model, store_traits, la
                 text_ids_with_multiple_values = values_per_text[values_per_text > 1].index #gives the ids of texts annotated by more than one value_trait
                 filtered_df = df[df['text_id'].isin(text_ids_with_multiple_values)]
                 print("Filtered", trait, filtered_df.shape)
-                all_labels = (sorted(set(df['gold'].unique()).union(set(df['pred'].unique()))))
+                all_labels = (sorted(set(df['gold'].unique()).union(set(df['predictions'].unique()))))
                 print("All labels:", all_labels)
 
 
                 text_value = {}
                 for idx,row in filtered_df.iterrows():
                     text_id = row["text_id"]
-                    pred = row["pred"]
+                    pred = row["predictions"]
                     gold = row["gold"]
                     value = row[trait]
 
                     key = (text_id, value)
 
                     if key not in text_value:
-                        text_value[key] = {"gold":[], "pred":[]}
+                        text_value[key] = {"gold":[], "predictions":[]}
                     text_value[key]["gold"].append(gold)
-                    text_value[key]["pred"].append(pred)
+                    text_value[key]["predictions"].append(pred)
 
                 result = {}
 
                 for key, labels in text_value.items():
                     gold = labels["gold"]
-                    pred = list(set(labels["pred"]))
+                    pred = list(set(labels["predictions"]))
 
                     tot_gold = len(gold)
                     # tot_pred = len(pred)
@@ -124,29 +122,29 @@ def compute_JSD (dataset, dict_datasets, test_set, label, model, store_traits, l
                 text_ids_with_multiple_values = values_per_text[values_per_text > 1].index #gives the ids of texts annotated by more than one value_trait
                 filtered_df = df[df['text_id'].isin(text_ids_with_multiple_values)]
                 print("Filtered", trait, filtered_df.shape)
-                all_labels = (sorted(set(df['gold'].unique()).union(set(df['pred'].unique()))))
+                all_labels = (sorted(set(df['gold'].unique()).union(set(df['predictions'].unique()))))
                 print("All labels:", all_labels)
 
 
                 text_value = {}
                 for idx,row in filtered_df.iterrows():
                     text_id = row["text_id"]
-                    pred = row["pred"]
+                    pred = row["predictions"]
                     gold = row["gold"]
                     value = row[trait]
 
                     key = (text_id, value)
 
                     if key not in text_value:
-                        text_value[key] = {"gold":[], "pred":[]}
+                        text_value[key] = {"gold":[], "predictions":[]}
                     text_value[key]["gold"].append(gold)
-                    text_value[key]["pred"].append(pred)
+                    text_value[key]["predictions"].append(pred)
 
                 result = {}
 
                 for key, labels in text_value.items():
                     gold = labels["gold"]
-                    pred = labels["pred"]
+                    pred = labels["predictions"]
 
                     tot_gold = len(gold)
                     tot_pred = len(pred)

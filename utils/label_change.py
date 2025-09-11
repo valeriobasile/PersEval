@@ -14,9 +14,8 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
             
 
         predictions = pd.read_csv(f"./predictions_{model}/predictions_{dataset}_True_train_False_{trait}.csv")
-        predictions = predictions[["user_id", "text_id", "label"]]
-        predictions = predictions.rename(columns={"label":"pred"})
-        predictions["pred"] = predictions["pred"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
+        predictions = predictions[["user_id", "text_id", "predictions"]]
+        predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
 
         # Assert predictions do not contain duplicates
         assert len(predictions) == len(predictions[["user_id", "text_id"]].drop_duplicates()), "The prediction file contains duplicates"
@@ -29,7 +28,6 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
         predictions = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
         predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
 
-        df = predictions.rename(columns={"predictions": "pred"})
     
     return df 
 
@@ -57,16 +55,16 @@ def prediction_change (dataset, dict_datasets, test_set, label, model, store_tra
 
                 for idx,row in filtered_df.iterrows():
                     text_id = row["text_id"]
-                    pred = row["pred"]
+                    pred = row["predictions"]
 
                     if text_id not in text_pred:
                         text_pred[text_id] = list()
                     text_pred[text_id].append(pred)
 
-
-                for labels in text_pred.values(): 
+                for id, labels in text_pred.items(): 
                     if len(set(labels)) > 1:
                         # print(labels)
+                        # print(id)
                         count_pred_change+=1
 
                 
