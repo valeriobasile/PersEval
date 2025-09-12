@@ -29,8 +29,8 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
         df = pd.merge(gold_annotations, predictions,  how='left', left_on=["user_id", "text_id"], right_on=["user_id", "text_id"])
     
     else: 
-        predictions = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
-        predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
+        df = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
+        df["predictions"] = df["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
 
     
     return df 
