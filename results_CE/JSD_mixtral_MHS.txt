@@ -1,6 +1,6 @@
 Gender (17541, 4)
 Filtered Gender (3016, 9)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 female: 0.28071728688461456
 male: 0.295181904276605
@@ -12,7 +12,7 @@ non-binary: 0.2824738859285046
 
 Age (17541, 4)
 Filtered Age (3458, 9)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 GenY: 0.26920816562375943
 GenX: 0.2762697717135992
@@ -24,7 +24,7 @@ GenZ: 0.2757933662361098
 
 Education (17541, 4)
 Filtered Education (3291, 9)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 educ-high: 0.2833534168653687
 educ-low: 0.2695077064088709
@@ -35,7 +35,7 @@ educ_high: 0.30064472069583525
 
 Income (17541, 4)
 Filtered Income (3098, 9)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 income-low: 0.27562941265076546
 income-high: 0.2977016956731957
@@ -45,7 +45,7 @@ income-high: 0.2977016956731957
 
 Ideology (17541, 4)
 Filtered Ideology (3489, 9)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 liberal: 0.2812649815356849
 conservative: 0.27353086719173847

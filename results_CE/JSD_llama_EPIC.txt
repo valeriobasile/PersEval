@@ -1,6 +1,6 @@
 Gender (2544, 4)
 Filtered Gender (705, 7)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 Male: 0.3804817525762877
 Female: 0.32574266884596803
@@ -10,7 +10,7 @@ Female: 0.32574266884596803
 
 Generation (2544, 4)
 Filtered Generation (996, 7)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 UNK: 0.35808800479900976
 GenY: 0.31611992193554367
@@ -22,7 +22,7 @@ GenZ: 0.3700641717165423
 
 Nationality (2544, 4)
 Filtered Nationality (1094, 7)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 India: 0.3858371483026545
 United Kingdom: 0.3081831986053356

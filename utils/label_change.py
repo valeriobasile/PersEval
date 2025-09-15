@@ -2,34 +2,31 @@ import pandas as pd
 import os 
 
 def prepare_df (test_set, label, dataset, model, trait, lamp=False):
-    if not lamp:
-        user_ids, text_ids, labels = [], [], []
-        for annotation in test_set.annotation:
-            user_ids.append(annotation[0])
-            text_ids.append(annotation[1])
-            labels.append(test_set.annotation[annotation[0], annotation[1]][label])
-        gold_annotations = pd.DataFrame({"user_id":user_ids, 
+    user_ids, text_ids, labels = [], [], []
+    for annotation in test_set.annotation:
+        user_ids.append(annotation[0])
+        text_ids.append(annotation[1])
+        labels.append(test_set.annotation[annotation[0], annotation[1]][label])
+    gold_annotations = pd.DataFrame({"user_id":user_ids, 
                                         "text_id": text_ids, 
                                         "gold":labels})
             
-
+    if not lamp:
         predictions = pd.read_csv(f"./predictions_{model}/predictions_{dataset}_True_train_False_{trait}.csv")
-        predictions = predictions[["user_id", "text_id", "predictions"]]
-        predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
-
-        # Assert predictions do not contain duplicates
-        assert len(predictions) == len(predictions[["user_id", "text_id"]].drop_duplicates()), "The prediction file contains duplicates"
-        # Assert the predictions has the same ids as the test set
-        assert set(predictions[["user_id", "text_id"]]) == set(gold_annotations[["user_id", "text_id"]]), "The prediction file does not contain the same instances as in the test set"
-        
-        df = pd.merge(gold_annotations, predictions,  how='left', left_on=["user_id", "text_id"], right_on=["user_id", "text_id"])
-    
     else: 
-        df = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
-        df["predictions"] = df["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
+        predictions = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
+        
+    predictions = predictions[["user_id", "text_id", "predictions"]]
+    predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
 
-    
-    return df 
+    # Assert predictions do not contain duplicates
+    assert len(predictions) == len(predictions[["user_id", "text_id"]].drop_duplicates()), "The prediction file contains duplicates"
+    # Assert the predictions has the same ids as the test set
+    assert set(predictions[["user_id", "text_id"]]) == set(gold_annotations[["user_id", "text_id"]]), "The prediction file does not contain the same instances as in the test set"
+        
+    df = pd.merge(gold_annotations, predictions,  how='left', left_on=["user_id", "text_id"], right_on=["user_id", "text_id"])
+        
+    return df  
 
 
 

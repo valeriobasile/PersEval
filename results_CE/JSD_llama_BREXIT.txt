@@ -1,6 +1,6 @@
 Group (640, 4)
 Filtered Group (640, 5)
-All labels: [np.int64(-1), np.int64(0), np.int64(1)]
+All labels: [-1, 0, 1]
 ====JSD====
 control: 0.1509005232723327
 target: 0.13789185747299368

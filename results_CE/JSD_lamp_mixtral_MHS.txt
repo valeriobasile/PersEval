@@ -1,55 +1,55 @@
 Gender (17541, 4)
 Filtered Gender (3016, 9)
-All labels: [np.int64(0), np.int64(1)]
+All labels: [0, 1]
 ====JSD====
-male: 0.22214978819879797
-female: 0.21486580843689387
-prefer_not_to_say: 0.2775182037192326
-non-binary: 0.23787274604505648
+female: 0.21100586277512898
+male: 0.21226028929824023
+prefer_not_to_say: 0.16651092223153954
+non-binary: 0.19327160616160838
 ==================================================
 
 
 
-Age (17531, 4)
+Age (17541, 4)
 Filtered Age (3458, 9)
-All labels: [np.int64(0), np.int64(1)]
+All labels: [0, 1, nan]
 ====JSD====
-GenY: 0.22029945565343304
-Boomer: 0.20822325647090445
-GenX: 0.2045959831382062
-GenZ: 0.18401470164714356
+GenY: 0.2239712857752758
+GenX: 0.2006152930811047
+Boomer: 0.21698698921993284
+GenZ: 0.17723426614295643
 ==================================================
 
 
 
-Education (17531, 4)
+Education (17541, 4)
 Filtered Education (3291, 9)
-All labels: [np.int64(0), np.int64(1)]
+All labels: [0, 1, nan]
 ====JSD====
-educ-high: 0.2279068582133376
-educ_high: 0.24943600453335785
-educ-low: 0.23113001790386603
+educ-high: 0.22289692233386085
+educ-low: 0.2357302664748661
+educ_high: 0.2213538053474831
 ==================================================
 
 
 
-Income (17511, 4)
+Income (17541, 4)
 Filtered Income (3098, 9)
-All labels: [np.int64(0), np.int64(1)]
+All labels: [0, 1, nan]
 ====JSD====
-income-low: 0.22697969506412746
-income-high: 0.23507233038781425
+income-low: 0.22522373818373895
+income-high: 0.2306211748654812
 ==================================================
 
 
 
-Ideology (17531, 4)
+Ideology (17541, 4)
 Filtered Ideology (3489, 9)
-All labels: [np.int64(0), np.int64(1)]
+All labels: [0, 1, nan]
 ====JSD====
-liberal: 0.22734492121142777
-conservative: 0.2182778448840519
-neutral: 0.24239210498296643
+liberal: 0.207564595502827
+conservative: 0.22111638893454766
+neutral: 0.23256052100630395
 ==================================================
 
 
