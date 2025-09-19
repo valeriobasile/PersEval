@@ -11,10 +11,10 @@ Number of possible traits:  5
 Normalized count of label change:  0.020821283979178717
 
 Education (17541, 4)
-Filtered Education (3291, 9)
-Number of texts where the prediction changed:  100
-Number of possible traits:  4
-Normalized count of label change:  0.030385900941962928
+Filtered Education (2767, 9)
+Number of texts where the prediction changed:  68
+Number of possible traits:  3
+Normalized count of label change:  0.024575352367184677
 
 Income (17541, 4)
 Filtered Income (3098, 9)

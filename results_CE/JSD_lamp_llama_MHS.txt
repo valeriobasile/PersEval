@@ -23,12 +23,11 @@ GenZ: 0.20756289257164293
 
 
 Education (17541, 4)
-Filtered Education (3291, 9)
+Filtered Education (2767, 9)
 All labels: [0, 1, nan]
 ====JSD====
-educ-high: 0.2599156074894451
+educ-high: 0.25534587609184695
 educ-low: 0.24415592862142266
-educ_high: 0.2485058095500356
 ==================================================
 
 

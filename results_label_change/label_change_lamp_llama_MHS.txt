@@ -4,27 +4,27 @@ Number of texts where the prediction changed:  259
 Number of possible traits:  5
 Normalized count of label change:  0.08587533156498674
 
-Age (17531, 4)
+Age (17541, 4)
 Filtered Age (3458, 9)
 Number of texts where the prediction changed:  295
-Number of possible traits:  4
+Number of possible traits:  5
 Normalized count of label change:  0.08530942741469057
 
-Education (17531, 4)
-Filtered Education (3291, 9)
-Number of texts where the prediction changed:  313
+Education (17541, 4)
+Filtered Education (2767, 9)
+Number of texts where the prediction changed:  269
 Number of possible traits:  3
-Normalized count of label change:  0.09510786994834397
+Normalized count of label change:  0.09721720274665703
 
-Income (17511, 4)
+Income (17541, 4)
 Filtered Income (3098, 9)
 Number of texts where the prediction changed:  309
-Number of possible traits:  2
+Number of possible traits:  3
 Normalized count of label change:  0.09974176888315042
 
-Ideology (17531, 4)
+Ideology (17541, 4)
 Filtered Ideology (3489, 9)
 Number of texts where the prediction changed:  329
-Number of possible traits:  3
+Number of possible traits:  4
 Normalized count of label change:  0.0942963599885354
 

@@ -691,7 +691,7 @@ class MHS(PerspectivistDataset):
 
         train_split , adaptation_split, test_split = PerspectivistSplit(type="train"), PerspectivistSplit(type="adaptation"), PerspectivistSplit(type="test")
         splits = [train_split, adaptation_split, test_split]
-        education={"college_grad_aa":"educ-high","college_grad_ba":"educ-high","high_school_grad":"educ-low","masters":"educ_high","phd":"educ-high","professional_degree":"educ-low","some_college":"educ-low","some_high_school":"educ-low"}
+        education={"college_grad_aa":"educ-high","college_grad_ba":"educ-high","high_school_grad":"educ-low","masters":"educ-high","phd":"educ-high","professional_degree":"educ-low","some_college":"educ-low","some_high_school":"educ-low"}
         ideology={"conservative":"conservative","extremely_conservative":"conservative","extremely_liberal":"liberal","liberal":"liberal","neutral":"neutral","no_opinion":"neutral","slightly_conservative":"conservative","slightly_liberal":"liberal"}
         income={"100k-200k":"income-high","10k-50k":"income-low","<10k":"income-low",">200k":"income-high","50k-100k":"income-high"}
         for split in splits:
