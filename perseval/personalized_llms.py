@@ -94,7 +94,7 @@ class PrepareData ():
                     
             # After collecting data for all users and traits, save the results for each trait
             for trait, input_data in trait_input_data.items():
-                output_file = f"./data_LaMP/{self.dataset_name}_{trait}_input.json"
+                output_file = f"./data_LaMP/{self.dataset_name}_{trait}_{named}_input.json"
                 with open(output_file, "w") as outfile:
                     json.dump(input_data, outfile, indent=4)
             
@@ -196,7 +196,7 @@ class PrepareData ():
             prompt = generate_prompt()
             input_data = generate_input_data_unnamed(prompt=prompt)
             
-            with open(f"./data_LaMP/{self.dataset_name}_input.json", "w") as outfile: 
+            with open(f"./data_LaMP/{self.dataset_name}_{named}_input.json", "w") as outfile: 
                 json.dump(input_data, outfile)
 
 
@@ -214,5 +214,5 @@ class PrepareData ():
                     "id":str(t),
                     k:v
                 })
-        with open(f"./data_LaMP/{self.dataset_name}_output.json", "w") as outfile: 
+        with open(f"./data_LaMP/{self.dataset_name}_{named}_output.json", "w") as outfile: 
             json.dump(output_data, outfile)

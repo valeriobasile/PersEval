@@ -1,8 +1,8 @@
 from perseval.data import *
 from perseval.model import *
 from perseval.evaluation import *
-from perseval.config import prompts
 from transformers.utils import logging
+from perseval.prompts import EPIC, BREXIT, MHS_prompts, DICES_prompts, MD_Agreement
 import argparse
 import glob
 
@@ -41,13 +41,24 @@ def parse_args():
         required=False,
         default="irony")
     parser.add_argument(
-        "--use-llm",
-        action='store_true')
+        "--type",
+        type=str,
+        required=True,
+        choices=['encoder', 'llm', 'LaMP'],)
     parser.add_argument(
         "--named",
         action='store_true')
     parser.add_argument(
         "--extended",
+        action='store_true')
+    parser.add_argument(
+        "--adaptation",
+        type=str,
+        required=False,
+        default="train"
+    )
+    parser.add_argument(
+        "--context",
         action='store_true')
     return parser.parse_args()
 
@@ -58,28 +69,43 @@ def main():
     # initialize the dataset
     if args.dataset_name == "Epic":
         perspectivist_dataset = Epic(args.label)
+        prompts = EPIC
     elif args.dataset_name == "Brexit":
         perspectivist_dataset = Brexit()
+        prompts = BREXIT
     elif args.dataset_name == "DICES":
         perspectivist_dataset = DICES(args.label)
+        prompts = DICES_prompts
     elif args.dataset_name == "MHS":
         perspectivist_dataset = MHS(args.label)
+        prompts = MHS_prompts
     elif args.dataset_name == "MD":
         perspectivist_dataset = MD(args.label)
-    perspectivist_dataset.get_splits(user_adaptation="train", extended=args.extended, named=args.named)
+        prompts = MD_Agreement
+    perspectivist_dataset.get_splits(user_adaptation=args.adaptation, extended=args.extended, named=args.named)
     
     # create the model
-    if args.use_llm:
+    if args.type=='llm':
         model = PerspectivistLLM(args.model_name, 
                                 perspectivist_dataset, 
                                 label=args.label)
-    else:
+    elif args.type=='encoder':
         model = PerspectivistEncoder(args.model_name, 
                                 perspectivist_dataset, 
                                 label=args.label)
+    elif args.type=='LaMP':
+        model = PerspectivistLaMP(args.model_name, 
+                                perspectivist_dataset, 
+                                label=args.label,
+                                context=args.context)
+        model.rank_profile(prompts)
+        model.merge_profile()
+        model.evaluate_dataset()
+        exit()
+        
     #"""
     # train/test the model if it is not an LLM, test only if it is an LLM
-    if not args.use_llm:
+    if args.type=='encoder':
         trainer = model.train()
         model.predict(trainer)  # <-- Predictions are saved in the "predictions" folder, 
     else:                       #     The file must contain three columns:
@@ -97,7 +123,7 @@ def main():
         filename = "predictions_%s_%s_%s_%s_zero.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended)
         files.append(model.output_path + "/" + filename)
 
-    if args.use_llm:
+    if args.type=='llm':
         for filename in files:
             #filename = "predictions_%s_%s_%s_%s_%s.csv" % (perspectivist_dataset.name, perspectivist_dataset.named, perspectivist_dataset.user_adaptation, perspectivist_dataset.extended, trait)
             #filename = model.output_path + "/" + filename

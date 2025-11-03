@@ -1,12 +1,12 @@
 text_context_template = {
 
 "prompt_zero": "Instruction: You are provided in input (Input) a pair of sentences ({cntxt_name}, {txt_name}) extracted from {data_source}. \
-Your task is to determine if the {txt_name} is {task_adj} in the context of the {cntxt_name}. Please provide in output (Output) a single label among the following array {labels}. \
+Your task is to determine if the {txt_name} is {task_adj} in the context of the {cntxt_name}. Please provide in output (Output) a single label among the following array {labels} within curly brackets (i.e. {{hate speech}} or {{not hate speech}}), followed with your thoughts. \
 Input: ",
 
 
 "prompt_demographics": "You are {trait}. \
-Instruction: You are provided in input (Input) a pair of sentences ({cntxt_name}, {txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj} in the context of the {cntxt_name}. Please provide in output (Output) a single label among the following array {labels}. \
+Instruction: You are provided in input (Input) a pair of sentences ({cntxt_name}, {txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj} in the context of the {cntxt_name}. Please provide in output (Output) a single label among the following array {labels} within curly brackets (i.e. {{hate speech}} or {{not hate speech}}), followed with your thoughts. \
 Input: "
     }
 
@@ -56,13 +56,13 @@ DICES_prompts = {"dataset_name": "Dices",
 
 text_only_template = {
 "prompt_zero": "Instruction: You are provided in input (Input) a sentence ({txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj}. \
-Please provide in output (Output) a single label among the following array {labels}. \
+Please provide in output (Output) a single label among the following array {labels} within curly brackets (i.e. {{hate speech}} or {{not hate speech}}), followed with your thoughts. \
 Input: ",
 
 
 "prompt_demographics": "You are {trait}. \
 Instruction: You are provided in input (Input) a sentence ({txt_name}) extracted from {data_source}. Your task is to determine if the {txt_name} is {task_adj}. \
-Please provide in output (Output) a single label among the following array {labels}.\
+Please provide in output (Output) a single label among the following array {labels} within curly brackets (i.e. {{hate speech}} or {{not hate speech}}), followed with your thoughts.\
 Input: "
     }
 
