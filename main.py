@@ -34,6 +34,7 @@ def parse_args():
         type=str,
         required=False,
         default="roberta-base",
+        choices=["roberta-base","mistralai/Mixtral-8x7B-Instruct-v0.1","meta-llama/Meta-Llama-3.1-8B-Instruct"],
         help="Name of the transformer model to run inference on")
     parser.add_argument(
         "--label",
@@ -94,10 +95,14 @@ def main():
                                 perspectivist_dataset, 
                                 label=args.label)
     elif args.type=='LaMP':
+        if args.adaptation!='test':
+            print("Adaptation set must be 'test'")
+            exit()
         model = PerspectivistLaMP(args.model_name, 
                                 perspectivist_dataset, 
                                 label=args.label,
-                                context=args.context)
+                                context=args.context,
+                                dataset_name=prompts["dataset_name"])
         model.rank_profile(prompts)
         model.merge_profile()
         model.evaluate_dataset()

@@ -13,6 +13,8 @@ from sklearn.utils import compute_class_weight
 import numpy as np
 from tqdm import tqdm
 from perseval.personalized_llms import PrepareData
+import json
+import datasets
 
 from . import config
 
@@ -303,7 +305,6 @@ class PerspectivistLLM():
             prompt = prompt + f"{key}:\n {value}\n"
         prompt = prompt + f"{prompt_options['context_post']}"
 
-        #print(prompt)
         return prompt
 
 
@@ -352,7 +353,7 @@ class PerspectivistLLM():
         return all_user_traits
 
 class PerspectivistLaMP():
-    def __init__(self, model_identifier, persp_dataset, label, context):
+    def __init__(self, model_identifier, persp_dataset, label, context,dataset_name):
         self.model_id = model_identifier
         self.label = label
         self.named = persp_dataset.named
@@ -361,10 +362,10 @@ class PerspectivistLaMP():
         self.context = context
         self.num_profiles = 5
         self.max_length = 1024
-    
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
+        self.dataset_name = dataset_name
         if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
             self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="auto")
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
             self.output_path = config.prediction_dir_mixtral
         elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
             self.output_path = config.prediction_dir_llama
@@ -373,6 +374,9 @@ class PerspectivistLaMP():
                 model=self.model_id,
                 model_kwargs={"torch_dtype": torch.bfloat16},
                 device="cuda")
+        else:
+            print("LaMP requires mistralai/Mixtral-8x7B-Instruct-v0.1 or meta-llama/Meta-Llama-3.1-8B-Instruct")
+            exit()
     
     def create_preprocessor(self):
         def preprocess(data):
@@ -391,7 +395,7 @@ class PerspectivistLaMP():
                 yield element
         return datasets.Dataset.from_generator(generator)
         
-    def classification_query_corpus_maker(inp, profile):
+    def classification_query_corpus_maker(self, inp, profile):
         corpus = [f'{x["comment"]}' for x in profile]
         idx = inp.find('Input:')
         if idx == -1:
@@ -399,7 +403,7 @@ class PerspectivistLaMP():
         query = inp[idx+len('Input:'):].strip()
         return corpus, query
 
-    def create_prompt(input,profile,max_length,tokenizer,label):    
+    def create_prompt(self,input,profile,max_length,tokenizer,label):    
         inputs=input.split("Input:")
         if len(profile) == 0:
             print("No profiles found")
@@ -445,6 +449,8 @@ class PerspectivistLaMP():
             with open(f'{config.data_lamp_dir}/{file}') as f:
                 data = json.load(f)
                 print(f'Processing {file}')
+            if not os.path.exists(f'{config.data_lamp_dir}/output/'):
+                os.makedirs(f'{config.data_lamp_dir}/output/')
             with open(f'{config.data_lamp_dir}/output/{file.replace("json","csv").replace("_merged","")}', 'w', newline='') as out_csv:
                 writer = csv.writer(out_csv)
                 field=["user_id","id","target","output"]
@@ -454,7 +460,6 @@ class PerspectivistLaMP():
                     for d in data:
                         print("Processing user: ", d)
                         for element in tqdm(data[d]):
-                            print("Processing element: ", element['id'])
                             profiles=[{
                                 "id": element['id'],
                                 "source": prompt_generator(element['input'], element['profile']),
@@ -476,7 +481,7 @@ class PerspectivistLaMP():
                             writer.writerow([d, element['id'],element[self.label],self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)])
 
 
-    def merge_data(input, output, ranks,label):
+    def merge_data(self, input, output, ranks,label):
         for data in input:
             for inp in input[data]:
                 for id in output:
@@ -492,7 +497,7 @@ class PerspectivistLaMP():
                             break
                 inp['profile'] = new_profile
                 inp[label] = outs
-        return inpu
+        return input
 
     def rank_profile(self,prompt):
         PrepareData(persp_dataset=self.all_dataset, dataset_config=prompt, named=self.named, context=self.context)
@@ -523,7 +528,7 @@ class PerspectivistLaMP():
                 
     def merge_profile(self):
         files = [file for file in os.listdir(config.data_lamp_dir) if file.lower().startswith(self.dataset.lower()) and "input" in file and str(self.named) in file]
-        with open(f'{config.data_lamp_dir}/{self.dataset}_{self.named}_output.json') as output_file:
+        with open(f'{config.data_lamp_dir}/{self.dataset_name}_{self.named}_output.json') as output_file:
             out =json.load(output_file)
         if len(files)==0:
             print("No input files found, you need to generate them with Rank Profile")
@@ -541,12 +546,12 @@ class PerspectivistLaMP():
                 json.dump(merged,merge_file,indent=4)
                 
     # LaMP rank_profiles methods
-    def mean_pooling(token_embeddings, mask):
+    def mean_pooling(self,token_embeddings, mask):
         token_embeddings = token_embeddings.masked_fill(~mask[..., None].bool(), 0.)
         sentence_embeddings = token_embeddings.sum(dim=1) / mask.sum(dim=1)[..., None]
         return sentence_embeddings
     
-    def batchify(lst, batch_size):
+    def batchify(self,lst, batch_size):
         return [lst[i:i+batch_size] for i in range(0, len(lst), batch_size)]
 
     def retrieve_top_k_with_contriver(self,contriver, tokenizer, corpus, profile, query, k, batch_size = 16):
