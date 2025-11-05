@@ -1,7 +1,6 @@
 import sys
 sys.path.append("..")
 import os
-import string 
 
 import pandas as pd
 import csv
@@ -89,14 +88,14 @@ class PerspectivistEncoder():
                 fieldnames=[
                     "user_id",
                     "text_id",
-                    "label"])
+                    "predictions"])
             writer.writeheader()
             for i, id in zip(enumerate(test_data), ids):
                 pred = np.argmax(predictions.predictions[i[0]])
                 writer.writerow({
                     "user_id": id[0],
                     "text_id": id[1],
-                    "label": pred
+                    "predictions": pred
                 })
 
 
@@ -227,17 +226,6 @@ class PerspectivistLLM():
                 else:
                     traits = {"zero": "zero"}
 
-                #PATCH: TO BE DELETED LATER
-                '''
-                if user_id == 9226:
-                    traits = {"Ideology": "from an unknown Ideology", "Education": "from an unknown Education", "Age": "from an unknown Age", "Income": "from an unknown Income"}
-                elif user_id == 3797 or user_id == 6749:
-                    traits = {"Income": "from an unknown Income"}
-                else:
-                    continue
-                '''
-                #PATCH ENDS HERE
-
                 # Write data for each trait of the user
                 for trait, profile in traits.items():
                     filename = "/predictions_%s_%s_%s_%s_%s.csv" % (self.dataset, self.named, self.user_adaptation, self.extended, trait)
@@ -271,7 +259,7 @@ class PerspectivistLLM():
                     writer.writerow({
                         "user_id": user_id,
                         "text_id": text_id,
-                        "label": prediction,
+                        "predictions": prediction,
                         "thoughts": llm_response,
                         "prompt": prompt
                     })
@@ -453,7 +441,7 @@ class PerspectivistLaMP():
                 os.makedirs(f'{config.data_lamp_dir}/output/')
             with open(f'{config.data_lamp_dir}/output/{file.replace("json","csv").replace("_merged","")}', 'w', newline='') as out_csv:
                 writer = csv.writer(out_csv)
-                field=["user_id","id","target","output"]
+                field=["user_id","id","predictions"]
                 writer.writerow(field)
                 outputs = []
                 with torch.no_grad():
@@ -478,7 +466,7 @@ class PerspectivistLaMP():
                                 )
                                 outputs.append(output)
                             generated_ids = output[:, inputs["input_ids"].shape[-1]:]
-                            writer.writerow([d, element['id'],element[self.label],self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)])
+                            writer.writerow([d, element['id'],self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)])
 
 
     def merge_data(self, input, output, ranks,label):

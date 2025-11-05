@@ -1,4 +1,4 @@
-user_id,text_id,label,thoughts,prompt
+user_id,text_id,predictions,thoughts,prompt
 Ann345,0,0,"<s> [INST] You are provided as input a tweet extracted from twitter. Your task is to determine if the tweet is offensive. Please provide as an output, a single label among the following options: 'offensive' or 'not offensive'  within curly brackets (i.e. {offensive} or {not offensive}) depending on your decision whether it is offensive or not, followed with your thoughts.
 Input:
 text:

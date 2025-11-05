@@ -1,5 +1,4 @@
 import json
-from tqdm import tqdm
 
 from perseval.prompts import text_context_template, text_only_template
 
