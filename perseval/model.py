@@ -233,7 +233,7 @@ class PerspectivistLLM():
                     # Open or retrieve the CSV file for this trait
                     if trait not in csv_files:
                         fo = open(self.output_path+filename, "a")
-                        writer = csv.DictWriter(fo, fieldnames=["user_id", "text_id", "label", "thoughts", "prompt"])
+                        writer = csv.DictWriter(fo, fieldnames=["user_id", "text_id", "predictions", "thoughts", "prompt"])
                         writer.writeheader()
                         csv_files[trait] = (fo, writer)
 
@@ -353,18 +353,13 @@ class PerspectivistLaMP():
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.dataset_name = dataset_name
         if self.model_id == "mistralai/Mixtral-8x7B-Instruct-v0.1":
-            self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="auto")
             self.output_path = config.prediction_dir_mixtral
         elif self.model_id == "meta-llama/Meta-Llama-3.1-8B-Instruct":
             self.output_path = config.prediction_dir_llama
-            self.model = pipeline(
-                "text-generation",
-                model=self.model_id,
-                model_kwargs={"torch_dtype": torch.bfloat16},
-                device="cuda")
         else:
             print("LaMP requires mistralai/Mixtral-8x7B-Instruct-v0.1 or meta-llama/Meta-Llama-3.1-8B-Instruct")
             exit()
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="auto")
     
     def create_preprocessor(self):
         def preprocess(data):
