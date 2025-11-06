@@ -26,7 +26,7 @@ dataset_specific_splits = {
 
 model_config = {
     "roberta-base": {
-        "output_dir": "./results",
+        "output_dir": "./checkpoints",
         "num_train_epochs": 5,
         "learning_rate": 5e-6,
         "per_device_train_batch_size": 32,
