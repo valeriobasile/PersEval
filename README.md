@@ -2,9 +2,9 @@
 
 ## A Library for Perspectivist Classification Evaluation
 
-**PersEval** is the first library for the evaluation of perspectivist classification models, developed to streamline the current fragmented perspectivist evaluation practices with a new unified framework. 
+**PersEval** is a library for the evaluation of perspectivist classification models, developed to streamline the current fragmented perspectivist evaluation practices with a new unified framework. 
 
-The framework is presented in paper [PersEval: A Framework for Perspectivist Classification Evaluation](https://aclanthology.org/2025.emnlp-main.1137), accepted at the main trak of **EMNLP 2025**.
+The framework is presented in the paper [PersEval: A Framework for Perspectivist Classification Evaluation](https://aclanthology.org/2025.emnlp-main.1137), accepted at the main track of **EMNLP 2025**.
 
 ## 📝 Abstract
 Data perspectivism goes beyond majority vote label aggregation by recognizing various perspectives as legitimate ground truths.
@@ -122,7 +122,7 @@ python main.py --model-name roberta-base --type encoder
 ```
 
 ### Decoder-based 
-We chose on open-source models of mediud size: Mixtral-8 /B and Llama-3.1 8B, both instruction tuned. We considered three possible settings: 
+We chose open-source models of medium size: Mixtral-8 7B and Llama-3.1 8B, both instruction tuned. We considered three possible settings: 
 
 **Base zero**: we prompt the models to classify the test set examples, with no additional information.
 
@@ -130,7 +130,7 @@ We chose on open-source models of mediud size: Mixtral-8 /B and Llama-3.1 8B, bo
 python main.py --model-name meta-llama/Meta-Llama-3.1-8B-Instruct --type llm
 ```
 
-**Perspective**: weask the models to impersonate each user’s trait. We use this variant to test models without adaptation with a named user representation. We prompt the model for each available user trait.
+**Perspective**: we ask the models to impersonate each user’s trait. We use this variant to test models without adaptation with a named user representation. We prompt the model for each available user trait.
 
 ```
 python main.py --named --model-name meta-llama/Meta-Llama-3.1-8B-Instruct --type llm
@@ -168,3 +168,32 @@ Results are placed at the "./qualitative_analysis" folder.
 Note that the current version of the library does not support multi-GPU settings.
 
 The In-Prompt Auugmentation strategy is part of a comprehensive evaluation framework for personalization with LLMs (LaMP). The full framework is available at [this repository](https://github.com/LaMP-Benchmark/LaMP/tree/main).
+
+## 📖 Reference
+If you use the library, please cite:
+
+```
+@inproceedings{lo-etal-2025-perseval,
+    title = "{PERSEVAL}: A Framework for Perspectivist Classification Evaluation",
+    author = "Lo, Soda Marem  and
+      Casola, Silvia  and
+      Sezerer, Erhan  and
+      Basile, Valerio  and
+      Sansonetti, Franco  and
+      Uva, Antonio  and
+      Bernardi, Davide",
+    editor = "Christodoulopoulos, Christos  and
+      Chakraborty, Tanmoy  and
+      Rose, Carolyn  and
+      Peng, Violet",
+    booktitle = "Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing",
+    month = nov,
+    year = "2025",
+    address = "Suzhou, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.emnlp-main.1137/",
+    pages = "22345--22370",
+    ISBN = "979-8-89176-332-6",
+    abstract = "Data perspectivism goes beyond majority vote label aggregation by recognizing various perspectives as legitimate ground truths.However, current evaluation practices remain fragmented, making it difficult to compare perspectivist approaches and analyze their impact on different users and demographic subgroups. To address this gap, we introduce PersEval, the first unified framework for evaluating perspectivist models in NLP. A key innovation is its evaluation at the individual annotator level and its treatment of annotators and users as distinct entities, consistently with real-world scenarios. We demonstrate PersEval{'}s capabilities through experiments with both Encoder-based and Decoder-based approaches, as well as an analysis of the effect of sociodemographic prompting. By considering global, text-, trait- and user-level evaluation metrics, we show that PersEval is a powerful tool for examining how models are influenced by user-specific information and identifying the biases this information may introduce."
+}
+```
