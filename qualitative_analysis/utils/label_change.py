@@ -12,9 +12,9 @@ def prepare_df (test_set, label, dataset, model, trait, lamp=False):
                                         "gold":labels})
             
     if not lamp:
-        predictions = pd.read_csv(f"./predictions_{model}/predictions_{dataset}_True_train_False_{trait}.csv")
+        predictions = pd.read_csv(f"../predictions_{model}/predictions_{dataset}_True_train_False_{trait}.csv")
     else: 
-        predictions = pd.read_csv(f"./predictions_{model}/edited_{dataset}_{trait}_True.csv")
+        predictions = pd.read_csv(f"../predictions_{model}/edited_{dataset}_{trait}_True.csv")
         
     predictions = predictions[["user_id", "text_id", "predictions"]]
     predictions["predictions"] = predictions["predictions"].astype(str).str.extract(r'(-?\d+)').astype(float).astype(int)
