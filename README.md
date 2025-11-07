@@ -88,12 +88,12 @@ The library comes with five datasets.
 
 BREXIT, EPIC and MHS are directly loaded from huggingface, while DICES and MD-Agreement are loaded form the "./data" folder.
 
-Other than the dataset name, is important to also specify the corresponding label.
+Other than the dataset name, it is important to also specify the corresponding label.
 
 ```
 python main.py --dataset-name DICES --label Q2_harmful_content_overall
 ```
-Options for labels are listed above, as well as in the main.py file
+Options for labels are listed below, as well as in the main.py file
 ```
 # EPIC   -> ["irony"]
 # BREXIT -> ["hs", "offensiveness", "aggressiveness", "stereotype"]
@@ -167,7 +167,7 @@ Results are placed at the "./qualitative_analysis" folder.
 
 Note that the current version of the library does not support multi-GPU settings.
 
-The In-Prompt Auugmentation strategy is part of a comprehensive evaluation framework for personalization with LLMs (LaMP). The full framework is available at [this repository](https://github.com/LaMP-Benchmark/LaMP/tree/main).
+The In-Prompt Augmentation strategy is part of a comprehensive evaluation framework for personalization with LLMs (LaMP). The full framework is available at [this repository](https://github.com/LaMP-Benchmark/LaMP/tree/main).
 
 ## 📖 Reference
 If you use the library, please cite:
