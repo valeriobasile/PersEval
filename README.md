@@ -16,7 +16,7 @@ By considering global, text-, trait- and user-level evaluation metrics, we show 
 
 ## ⚙️ Framework
 
-[ADD IMAGE HERE ]
+![](<./framework_diagram.png>)
 
 ### Named or unnamed classification
 Users can be represented in two ways:
