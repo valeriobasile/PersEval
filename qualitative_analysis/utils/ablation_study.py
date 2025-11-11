@@ -102,7 +102,7 @@ def dict_combinations (datasets):
 
 def results_ablation (dataset, models, d_combinations, test_set, label, lamp=False):
     for model in models:
-        folder_path = f"./PersEval/predictions_{model}"
+        folder_path = f"../predictions_{model}"
         print("="*80)
         print (model)
         print("="*80)
