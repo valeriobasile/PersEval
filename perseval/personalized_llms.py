@@ -64,8 +64,9 @@ class PrepareData ():
                     if user not in input_data:
                         input_data[user] = []
 
-                    for key in self.test_split.annotation.keys():
-                        u, t = key
+                    for ann in self.test_split.annotation:
+                        u = ann['user']
+                        t = ann['text']
                         
                         if u != user:  # Match the user in store_prompts with u
                             continue
@@ -106,8 +107,9 @@ class PrepareData ():
             input_data = {}
             list_ids = []
 
-            for key in self.test_split.annotation.keys():
-                u, t = key
+            for ann in self.test_split.annotation:
+                u = ann['user']
+                t = ann['text']
                 
                 if u not in input_data:
                     input_data [u] = []
@@ -139,9 +141,10 @@ class PrepareData ():
         #create the profile based on the adapation set  
         profile = {}
         list_ids_a  = []
-        for key,value in self.adaptation_split.annotation.items():
-            u = key[0]
-            t = key[1]
+        for ann in self.adaptation_split.annotation:
+            u = ann['user']
+            t = ann['text']
+            value = ann['label']
             if u not in profile:
                 profile[u] = []
 
@@ -202,9 +205,10 @@ class PrepareData ():
 
         #create output file
         output_data = {}
-        for key,value in self.test_split.annotation.items():
-            u = key[0]
-            t = key[1]
+        for ann in self.test_split.annotation:
+            u = ann['user']
+            t = ann['text']
+            value = ann['label']
             if u not in output_data:
                 output_data[u] = []
 

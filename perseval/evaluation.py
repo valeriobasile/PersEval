@@ -3,17 +3,20 @@ import numpy as np
 from sklearn.metrics import classification_report
 
 class Evaluator():
-    def __init__(self, prediction_path, test_set, label):
+    def __init__(self, prediction_table, test_set, label):
         self.test_set = test_set
-        self.predictions = pd.read_csv(prediction_path)
+        if isinstance(prediction_table, pd.DataFrame):
+            self.predictions = prediction_table
+        else: 
+            self.predictions = pd.read_csv(prediction_table)
         self.predictions = self.predictions[["user_id", "text_id", "predictions"]]
         self.label = label
         
         user_ids, text_ids, labels = [], [], []
         for annotation in test_set.annotation:
-            user_ids.append(annotation[0])
-            text_ids.append(annotation[1])
-            labels.append(test_set.annotation[annotation[0], annotation[1]][label])
+            user_ids.append(annotation['user'])
+            text_ids.append(annotation['text'])
+            labels.append(annotation['label'][label])
         self.gold_annotations = pd.DataFrame({"user_id":user_ids, 
                                               "text_id": text_ids, 
                                               "gold":labels})
@@ -36,6 +39,32 @@ class Evaluator():
             self.ordered_pred = self.ordered_pred.fillna(-1)
 
 
+    def print_metrics(self, dict_metrics):
+
+        # Same row order as the sklearn report: classes (sorted), then the summary rows.
+        # The dict order cannot be trusted: for the annotator-level average it follows
+        # the first annotator, so a class that annotator lacks would end up last.
+        summary_rows = [k for k in ('accuracy', 'micro avg', 'macro avg', 'weighted avg') if k in dict_metrics]
+        class_rows = [k for k in dict_metrics if k not in summary_rows]
+        try:
+            class_rows = sorted(class_rows, key=float)
+        except ValueError:
+            pass # non-numeric labels: keep the order of the report
+
+        dm = {}
+        for k in class_rows + summary_rows:
+            v = dict_metrics[k]
+            if isinstance(v,dict):
+                dm[k] = v
+            else:
+                dm[k] = {'f1-score' : v}
+
+        df = pd.DataFrame(dm).T
+        print(df.to_string(
+            na_rep='--',
+            float_format="{:.3f}".format,
+            formatters={"support": lambda v_support: f"{v_support:.1f}"}))
+        
             
         
     def global_metrics(self):
@@ -45,12 +74,9 @@ class Evaluator():
             self.ordered_pred["predictions"], 
             zero_division=0.0,
             output_dict=True)
-        print(classification_report(
-            self.ordered_pred["gold"], 
-            self.ordered_pred["predictions"], 
-            digits=3, 
-            zero_division=0.0).replace("0.", "."))
-    
+        self.print_metrics(self.global_metrics_dic)
+        return self.global_metrics_dic
+
 
     def annotator_level_metrics(self):
         print("\n----- Annotator-level metrics -----")
@@ -86,11 +112,14 @@ class Evaluator():
                 if not label in self.annotator_based_macro_avg:
                     self.annotator_based_macro_avg[label] = {}
                 for metric in all_annotator_level_metrics[label]:
-                    self.annotator_based_macro_avg[label] = np.mean(all_annotator_level_metrics[label][metric])
-                    print("%s, %s --- %.3f" % (label, metric, np.mean(all_annotator_level_metrics[label][metric])))
-            else:
+                    if not metric in self.annotator_based_macro_avg[label]:
+                        self.annotator_based_macro_avg[label][metric] = np.mean(all_annotator_level_metrics[label][metric])
+                    # print("%s, %s --- %.3f" % (label, metric, self.annotator_based_macro_avg[label][metric]))
+            else:    
                 self.annotator_based_macro_avg[label] = np.mean(all_annotator_level_metrics[label])
-                print("%s --- %.3f" % (label, np.mean(all_annotator_level_metrics[label])))
+                # print("%s --- %.3f" % (label, self.annotator_based_macro_avg[label]))
+        self.print_metrics(self.annotator_based_macro_avg)
+        return self.annotator_based_macro_avg
         
 
     def text_level_metrics(self):
@@ -127,12 +156,13 @@ class Evaluator():
                 if not label in self.text_based_macro_avg:
                     self.text_based_macro_avg[label] = {}
                 for metric in all_text_level_metrics[label]:
-                    self.text_based_macro_avg[label] = np.mean(all_text_level_metrics[label][metric])
-                    print("%s, %s --- %.3f" % (label, metric, np.mean(all_text_level_metrics[label][metric])))
+                    self.text_based_macro_avg[label][metric] = np.mean(all_text_level_metrics[label][metric])
+                    # print("%s, %s --- %.3f" % (label, metric, np.mean(all_text_level_metrics[label][metric])))
             else:
                 self.text_based_macro_avg[label] = np.mean(all_text_level_metrics[label])
-                print("%s --- %.3f" % (label, np.mean(all_text_level_metrics[label])))
-
+                # print("%s --- %.3f" % (label, np.mean(all_text_level_metrics[label])))
+        self.print_metrics(self.text_based_macro_avg)
+        return self.text_based_macro_avg
     
     def trait_level_metrics(self):
         print("\n----- Trait-level metrics -----")        
@@ -184,21 +214,29 @@ class Evaluator():
                             else:
                                 all_trait_level_metrics[dim][label].append(self.trait_level_metrics_dic[dim][trait][label])
 
-        print("\nTrait-level macro averages")
-        self.trait_based_macro_avg = {}        
-        for dim in all_trait_level_metrics:
-            print("\n--- %s ---" % dim)
-            if not dim in self.trait_based_macro_avg:
-                self.trait_based_macro_avg[dim] = {}
-            for label in all_trait_level_metrics[dim]:
-                if not isinstance(all_trait_level_metrics[dim][label], list):
-                    if not label in self.trait_based_macro_avg[dim]:
-                        self.trait_based_macro_avg[dim][label] = {}
-                    for metric in all_trait_level_metrics[dim][label]:
-                        self.trait_based_macro_avg[dim][label] = np.mean(all_trait_level_metrics[dim][label][metric])
-                        print("%s, %s --- %.3f" % (label, metric, np.mean(all_trait_level_metrics[dim][label][metric])))
-                else:
-                    self.trait_based_macro_avg[dim][label] = np.mean(all_trait_level_metrics[dim][label])
-                    print("%s --- %.3f" % (label, np.mean(all_trait_level_metrics[dim][label])))
+        self.trait_based_macro_avg = {}
+
+        if not trait_to_annotator:
+            print("\nNo trait-level metrics: the test set has no annotator traits "
+                  "(the task was generated with named=False, or the dataset has no annotator metadata).")
+        else:
+            print("\nTrait-level macro averages")
+            for dim in all_trait_level_metrics:
+                print("\n--- %s ---" % dim)
+                if not dim in self.trait_based_macro_avg:
+                    self.trait_based_macro_avg[dim] = {}
+                for label in all_trait_level_metrics[dim]:
+                    if not isinstance(all_trait_level_metrics[dim][label], list):
+                        if not label in self.trait_based_macro_avg[dim]:
+                            self.trait_based_macro_avg[dim][label] = {}
+                        for metric in all_trait_level_metrics[dim][label]:
+                            self.trait_based_macro_avg[dim][label][metric] = np.mean(all_trait_level_metrics[dim][label][metric])
+                            # print("%s, %s --- %.3f" % (label, metric, np.mean(all_trait_level_metrics[dim][label][metric])))
+                    else:
+                        self.trait_based_macro_avg[dim][label] = np.mean(all_trait_level_metrics[dim][label])
+                        # print("%s --- %.3f" % (label, np.mean(all_trait_level_metrics[dim][label])))
+                self.print_metrics(self.trait_based_macro_avg[dim])
+
+        return self.trait_based_macro_avg
 
                     

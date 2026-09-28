@@ -4,9 +4,9 @@ import os
 def prepare_df (test_set, label, dataset, model, trait, lamp=False):
     user_ids, text_ids, labels = [], [], []
     for annotation in test_set.annotation:
-        user_ids.append(annotation[0])
-        text_ids.append(annotation[1])
-        labels.append(test_set.annotation[annotation[0], annotation[1]][label])
+        user_ids.append(annotation['user'])
+        text_ids.append(annotation['text'])
+        labels.append(annotation['label'][label])
     gold_annotations = pd.DataFrame({"user_id":user_ids, 
                                         "text_id": text_ids, 
                                         "gold":labels})

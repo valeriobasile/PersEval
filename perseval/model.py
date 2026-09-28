@@ -102,9 +102,9 @@ class PerspectivistEncoder():
     def __generate_data(self, split):
         ids, texts, labels = [], [], []
         for ann in split.annotation:
-            ids.append(ann)
-            texts.append(self.__add_special_tokens_to_text(split.users[ann[0]], split.texts[ann[1]]))
-            labels.append(split.annotation[ann][self.label])
+            ids.append((ann['user'], ann['text']))
+            texts.append(self.__add_special_tokens_to_text(split.users[ann['user']], split.texts[ann['text']]))
+            labels.append(ann['label'][self.label])
         df = pd.DataFrame({"text":texts, "labels":labels})
         dt = Dataset.from_pandas(df)
         tokenized_dataset = dt.map(lambda x: self.__tokenize(x, self.tokenizer), remove_columns=['text'])
