@@ -3,9 +3,12 @@ import numpy as np
 from sklearn.metrics import classification_report
 
 class Evaluator():
-    def __init__(self, prediction_path, test_set, label):
+    def __init__(self, prediction_table, test_set, label):
         self.test_set = test_set
-        self.predictions = pd.read_csv(prediction_path)
+        if isinstance(prediction_table, pd.DataFrame):
+            self.predictions = prediction_table
+        else: 
+            self.predictions = pd.read_csv(prediction_table)
         self.predictions = self.predictions[["user_id", "text_id", "predictions"]]
         self.label = label
         
